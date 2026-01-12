@@ -1,0 +1,17 @@
+<h1>Schedule</h1>
+<p>Simple schedule view</p>
+
+{% if shifts %}
+  <ul>
+    {% for s in shifts %}
+      <li>
+        <strong>{{ s.client }}</strong>
+        — {{ s.caregiver }}
+        — {{ s.start_time }} to {{ s.end_time }}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p><em>No shifts found.</em></p>
+{% endif %}
+

@@ -1,0 +1,19 @@
+from django.contrib import admin
+from django.utils.html import format_html
+from .models import Shift
+
+@admin.register(Shift)
+class ShiftAdmin(admin.ModelAdmin):
+    list_display = ("caregiver", "client", "start_time", "end_time", "maps_links")
+
+    def maps_links(self, obj):
+        if not obj.client or not obj.client.full_address():
+            return "-"
+        a = obj.client.apple_maps_directions_url()
+        g = obj.client.google_maps_directions_url()
+        return format_html(
+            '<a href="{}" target="_blank">Apple Maps</a> | <a href="{}" target="_blank">Google Maps</a>',
+            a, g
+        )
+
+    maps_links.short_description = "Navigate"

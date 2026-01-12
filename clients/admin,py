@@ -1,0 +1,18 @@
+from django.contrib import admin
+from .models import Client, PatientProfile
+
+class PatientProfileInline(admin.StackedInline):
+    model = PatientProfile
+    can_delete = False
+    extra = 0
+
+@admin.register(Client)
+class ClientAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "radius_meters", "latitude", "longitude")
+    search_fields = ("name",)
+    inlines = [PatientProfileInline]
+
+@admin.register(PatientProfile)
+class PatientProfileAdmin(admin.ModelAdmin):
+    list_display = ("id", "client", "first_name", "last_name", "date_of_birth")
+    search_fields = ("first_name", "last_name", "client__name")

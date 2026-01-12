@@ -1,0 +1,10 @@
+<h2>Clock Status</h2>
+
+<p>Caregiver: {{ entry.caregiver }}</p>
+<p>Clock in: {{ entry.clock_in }} ({{ entry.in_lat }}, {{ entry.in_lng }})</p>
+<p>Clock out: {{ entry.clock_out }} ({{ entry.out_lat }}, {{ entry.out_lng }})</p>
+
+{% if not entry.clock_out %}
+  <a href="{% url 'timeclock:clock_out' entry.id %}">Clock Out</a>
+{% endif %}
+

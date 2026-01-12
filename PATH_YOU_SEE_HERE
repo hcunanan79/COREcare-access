@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+  <title>Schedule</title>
+</head>
+<body>
+  <h1>Schedule</h1>
+  <p>Simple schedule view</p>
+
+  <table border="1" cellpadding="8" cellspacing="0">
+    <tr>
+      <th>Client</th>
+      <th>Caregiver</th>
+      <th>Start</th>
+      <th>End</th>
+    </tr>
+
+    {% for shift in shifts %}
+    <tr>
+      <td>{{ shift.client }}</td>
+      <td>{{ shift.caregiver }}</td>
+      <td>{{ shift.start_time }}</td>
+      <td>{{ shift.end_time }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4">No shifts scheduled.</td></tr>
+    {% endfor %}
+  </table>
+
+</body>
+</html>

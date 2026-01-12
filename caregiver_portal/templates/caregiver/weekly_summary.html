@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Weekly Hours</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f5f7fa; }
+    .card { background: white; padding: 20px; border-radius: 10px; }
+    h2 { margin-top: 0; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>🗓 Weekly Payroll Hours</h2>
+  <p><strong>Week (Mon–Sun):</strong> {{ start }} – {{ end }}</p>
+
+  <hr>
+
+  <p><strong>Total Hours Worked:</strong></p>
+  <h1>{{ total_hours }} hours</h1>
+
+  <hr>
+
+  <h3>Visits</h3>
+  <ul>
+    {% for visit in visits %}
+      <li>{{ visit.client }} — {{ visit.duration_hours }} hrs</li>
+    {% empty %}
+      <li>No visits this week</li>
+    {% endfor %}
+  </ul>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,4 @@
+/* Use Nunito everywhere */
+body, input, textarea, select, button {
+  font-family: 'Nunito', sans-serif;
+}

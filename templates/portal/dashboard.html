@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Caregiver Portal</title>
+</head>
+<body>
+    <h1>My Assigned Shifts</h1>
+
+    {% if shifts %}
+        <ul>
+            {% for s in shifts %}
+                <li>
+                    <strong>{{ s.client }}</strong><br>
+                    Caregiver: {{ s.caregiver }}<br>
+                    {{ s.start_time }} – {{ s.end_time }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No shifts assigned yet.</p>
+    {% endif %}
+</body>
+</html>

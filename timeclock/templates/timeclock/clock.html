@@ -1,0 +1,24 @@
+<h2>{% if mode == "in" %}Clock In{% else %}Clock Out{% endif %}</h2>
+
+<p>Shift: {{ shift }}</p>
+
+<form method="POST">
+  {% csrf_token %}
+  <input type="hidden" name="lat" id="lat">
+  <input type="hidden" name="lng" id="lng">
+  <input type="hidden" name="accuracy" id="accuracy">
+  <button type="submit">Submit</button>
+</form>
+
+<script>
+navigator.geolocation.getCurrentPosition(
+  (pos) => {
+    document.getElementById("lat").value = pos.coords.latitude;
+    document.getElementById("lng").value = pos.coords.longitude;
+    document.getElementById("accuracy").value = pos.coords.accuracy;
+  },
+  (err) => { alert("GPS blocked. Please allow location access in the browser."); },
+  { enableHighAccuracy: true, timeout: 10000 }
+);
+</script>
+

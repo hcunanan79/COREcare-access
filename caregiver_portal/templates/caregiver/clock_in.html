@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Caregiver Clock In</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f7fa; }
+    h2 { margin: 0; }
+    .welcome { background: #fff; padding: 16px; border-radius: 10px; margin-bottom: 16px; }
+    select, textarea, button { width: 100%; font-size: 18px; padding: 12px; margin-top: 6px; }
+    button { background: #2ecc71; color: white; border: 0; border-radius: 8px; }
+    label { font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div class="welcome">
+  <h2>Welcome, {{ caregiver_name }} 👋</h2>
+  <p>Have a great shift 💙</p>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+
+  <label>Select Client</label>
+  <select name="client" required>
+    {% for client in clients %}
+      <option value="{{ client.id }}">{{ client }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Visit Notes</label>
+  <textarea name="notes" rows="4" placeholder="How is the client today?"></textarea>
+
+  <button type="submit">Clock In</button>
+</form>
+
+</body>
+</html>

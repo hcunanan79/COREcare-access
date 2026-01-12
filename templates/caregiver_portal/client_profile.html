@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ client }}</title>
+  <style>
+  :root{
+    --teal:#2FA7A6;
+    --teal-dark:#1C7F7E;
+    --salmon:#FF6F7D;
+    --bg:#F6F8FA;
+    --text:#0F172A;
+    --muted:#64748B;
+    --card:#FFFFFF;
+    --border:#E5E7EB;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+  .topbar{
+    padding:14px 16px;
+    background:linear-gradient(90deg,var(--teal),var(--teal-dark));
+    color:#fff;
+    font-size:20px;
+    font-weight:800;
+    letter-spacing:.2px;
+    position:sticky;top:0;z-index:10;
+  }
+  .mapwrap{width:100%;height:260px}
+  .card{
+    margin:12px;
+    padding:14px;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    box-shadow:0 6px 18px rgba(15,23,42,.06);
+  }
+  .label{font-size:18px;font-weight:800;margin:0 0 6px}
+  .sub{font-size:16px;line-height:1.35;color:var(--text)}
+  .muted{color:var(--muted)}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:12px 14px;border-radius:12px;
+    text-decoration:none;font-weight:800;font-size:15px;
+    border:0;
+  }
+  .btn-teal{background:var(--teal);color:#fff}
+  .btn-teal:active{transform:translateY(1px)}
+  .btn-salmon{background:var(--salmon);color:#fff}
+  .pill{
+    display:inline-block;
+    padding:6px 10px;border-radius:999px;
+    background:rgba(47,167,166,.12);
+    color:var(--teal-dark);
+    font-weight:800;font-size:13px;
+    margin-bottom:10px;
+  }
+</style>
+</head>
+<body>
+  <div class="btnrow">
+  <a class="btn btn-teal" href="{{ client.apple_maps_directions_url }}" target="_blank">Navigate (Apple)</a>
+  <a class="btn btn-teal" href="{{ client.google_maps_directions_url }}" target="_blank">Navigate (Google)</a>
+  <a class="btn btn-salmon" href="tel:{{ client.phone }}">Call</a>
+</div>
+    <iframe
+      width="100%" height="260" frameborder="0" style="border:0"
+      referrerpolicy="no-referrer-when-downgrade"
+      src="https://www.google.com/maps?q={{ client.full_address|urlencode }}&output=embed"
+      allowfullscreen>
+    </iframe>
+  </div>
+
+  <div class="card">
+    <div class="label">{{ client.first_name }}’s Home</div>
+    <div class="sub">{{ client.full_address }}</div>
+
+    <!-- Navigate buttons -->
+    <a class="btn" href="{{ client.apple_maps_directions_url }}" target="_blank">Navigate (Apple Maps)</a>
+    <a class="btn" href="{{ client.google_maps_directions_url }}" target="_blank" style="margin-left:8px;">Navigate (Google Maps)</a>
+  </div>
+
+  <div class="card">
+    <div class="label">{{ client.first_name }}’s Home Phone</div>
+    {% if client.phone %}
+      <div class="sub"><a href="tel:{{ client.phone }}">{{ client.phone }}</a></div>
+    {% else %}
+      <div class="sub muted">No phone on file</div>
+    {% endif %}
+  </div>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block extrahead %}
+{{ block.super }}
+
+<!-- Google Font: Nunito -->
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<!-- Your custom styles -->
+<link rel="stylesheet" href="{% static 'admin/css/custom.css' %}">
+{% endblock %}

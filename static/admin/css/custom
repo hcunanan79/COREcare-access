@@ -1,0 +1,28 @@
+/* CORECare Access – Warm & Caring Theme */
+
+:root {
+  --primary: #4FA3A5;
+  --secondary: #8FBFA8;
+  --background: #F9F6F2;
+}
+
+/* Header bar */
+#header {
+  background: var(--primary);
+}
+
+/* Module headers */
+.module h2, .module caption, .inline-group h2 {
+  background: var(--secondary);
+}
+
+/* Buttons */
+.button, input[type=submit], input[type=button] {
+  background: var(--primary);
+  border-radius: 8px;
+}
+
+/* Page background */
+body {
+  background: var(--background);
+}
