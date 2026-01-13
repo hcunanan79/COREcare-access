@@ -22,3 +22,6 @@ def signup(request):
         form = SignUpForm()
 
     return render(request, "portal/signup.html", {"form": form})
+
+def portal_home(request):
+    return render(request, "portal/signup.html")
