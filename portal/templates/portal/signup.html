@@ -1,3 +1,4 @@
+{% load static %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -15,13 +16,11 @@
   </style>
 </head>
 <body>
-  <div class="container py-5">
-    <div class="row justify-content-center">
-      <div class="col-12 col-md-7 col-lg-5">
-        <div class="text-center mb-4">
-          <div class="brand fs-3">CORECare Access</div>
-          <div class="text-muted">Employee account registration</div>
-        </div>
+  <div class="text-center mb-4">
+    <img src="{% static 'portal/logo.png' %}" width="90" class="mb-3">
+    <div class="brand fs-3">CORECare Access</div>
+    <div class="text-muted">Employee account registration</div>
+  </div
 
         <div class="card shadow-sm">
           <div class="card-body p-4">
