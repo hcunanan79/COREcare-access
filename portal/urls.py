@@ -3,4 +3,5 @@ from . import views
 
 urlpatterns = [
     path("", views.portal_home, name="portal_home"),
+    path("signup/", views.signup, name="signup"),   # 👈 ADD THIS LINE
 ]
