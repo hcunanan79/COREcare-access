@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Employee Dashboard</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    body { background:#f6f7fb; }
+    .tile {
+      border-radius: 18px;
+      padding: 22px 16px;
+      text-align: center;
+      border: 0;
+      background: white;
+      box-shadow: 0 6px 18px rgba(0,0,0,.06);
+    }
+    .tile i { font-size: 44px; display:block; margin-bottom: 10px; }
+    .tile span { font-weight: 700; letter-spacing: .2px; }
+    .tile small { display:block; color:#6c757d; margin-top: 4px; }
+    a.tile-link { text-decoration:none; color: inherit; }
+  </style>
+</head>
+
+<body>
+  <div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <div>
+        <div class="h4 mb-0">Welcome, {{ request.user.username }} 👋</div>
+        <div class="text-muted">CORECare Access</div>
+      </div>
+      <a class="btn btn-outline-danger btn-sm" href="/logout/">Log out</a>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-6">
+        <a class="tile-link" href="/clients/">
+          <div class="tile">
+            <i class="bi bi-heart-pulse text-danger"></i>
+            <span>Clients</span>
+            <small>View client list</small>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-6">
+        <a class="tile-link" href="/employees/">
+          <div class="tile">
+            <i class="bi bi-person-badge text-primary"></i>
+            <span>Employees</span>
+            <small>Staff directory</small>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-6">
+        <a class="tile-link" href="/shifts/">
+          <div class="tile">
+            <i class="bi bi-calendar-check text-success"></i>
+            <span>Shifts</span>
+            <small>Assignments</small>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-6">
+        <a class="tile-link" href="/schedule/">
+          <div class="tile">
+            <i class="bi bi-calendar-week text-info"></i>
+            <span>Schedule</span>
+            <small>Weekly view</small>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-6">
+        <a class="tile-link" href="/messages/">
+          <div class="tile">
+            <i class="bi bi-chat-left-text text-warning"></i>
+            <span>Messages</span>
+            <small>Inbox</small>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-6">
+        <a class="tile-link" href="/timeclock/">
+          <div class="tile">
+            <i class="bi bi-stopwatch text-secondary"></i>
+            <span>Clock In/Out</span>
+            <small>Time tracking</small>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
