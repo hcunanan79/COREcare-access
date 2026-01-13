@@ -1,15 +1,15 @@
-from django.conf import settings
-from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
-from django.urls import include
+from django.shortcuts import redirect
 
 admin.site.site_header = "CORECare Access"
 admin.site.site_title = "CORECare Access"
 admin.site.index_title = "Easing the way to better care"
 
 urlpatterns = [
-    path("caregiver/", include("caregiver_portal.urls")),    
+    path("", lambda request: redirect("/portal/")),  # 👈 MUST BE FIRST
+
+    path("caregiver/", include("caregiver_portal.urls")),
     path("admin/", admin.site.urls),
     path("schedule/", include("clients.urls")),
     path("portal/", include("portal.urls")),
