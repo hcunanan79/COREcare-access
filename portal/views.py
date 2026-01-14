@@ -35,3 +35,9 @@ from django.contrib.auth.decorators import login_required
 @login_required
 def employee_dashboard(request):
     return render(request, "portal/employee_dashboard.html")
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+
+@login_required
+def employee_dashboard(request):
+    return render(request, "portal/employee_dashboard.html")
