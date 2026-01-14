@@ -46,7 +46,6 @@ from django.http import HttpResponse
 from django.conf import settings
 from django.http import HttpResponse
 
-def debug_request(request):
     return HttpResponse(
         f"DEBUG_VERSION: 3<br>"
         f"settings module: {settings.SETTINGS_MODULE}<br>"
