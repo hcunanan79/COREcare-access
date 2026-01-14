@@ -38,10 +38,9 @@ def employee_dashboard(request):
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
-@login_required
-def employee_dashboard(request):
-    return render(request, "portal/employee_dashboard.html")
 from django.http import HttpResponse
+def employee_dashboard(request):
+    return HttpResponse("Dashboard is loading correctly ✅")
 
 from django.conf import settings
 from django.http import HttpResponse
