@@ -47,8 +47,9 @@ from django.conf import settings
 from django.http import HttpResponse
 
 def debug_request(request):
-    return HttpResponse(f"""
-    user attribute exists: {hasattr(request, 'user')}<br>
-    settings module: {settings.SETTINGS_MODULE}<br>
-    middleware count: {len(settings.MIDDLEWARE)}
-    """)
+    return HttpResponse(
+        f"DEBUG_VERSION: 3<br>"
+        f"settings module: {settings.SETTINGS_MODULE}<br>"
+        f"middleware has auth: {'django.contrib.auth.middleware.AuthenticationMiddleware' in settings.MIDDLEWARE}<br>"
+        f"user attr exists: {hasattr(request, 'user')}"
+    )
