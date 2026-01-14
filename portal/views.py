@@ -41,3 +41,10 @@ from django.shortcuts import render
 @login_required
 def employee_dashboard(request):
     return render(request, "portal/employee_dashboard.html")
+from django.http import HttpResponse
+
+def debug_request(request):
+    return HttpResponse(f"""
+    user attribute exists: {hasattr(request, 'user')}<br>
+    middleware loaded: {request.META.get('DJANGO_SETTINGS_MODULE')}
+    """)
