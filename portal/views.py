@@ -3,6 +3,11 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib import messages
 from .forms import SignUpForm
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def employee_dashboard(request):
+    return render(request, "portal/employee_dashboard.html")
 
 def signup(request):
     if request.method == "POST":
@@ -25,3 +30,8 @@ def signup(request):
 
 def portal_home(request):
     return render(request, "portal/signup.html")
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def employee_dashboard(request):
+    return render(request, "portal/employee_dashboard.html")
