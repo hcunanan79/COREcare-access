@@ -18,6 +18,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     "portal",
+    "clients",
+    "caregiver_portal",
 ]
 
 MIDDLEWARE = [
