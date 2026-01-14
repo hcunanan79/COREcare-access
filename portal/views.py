@@ -44,8 +44,7 @@ def employee_dashboard(request):
 
 from django.conf import settings
 from django.http import HttpResponse
-
-    return HttpResponse(
+     return HttpResponse(
         f"DEBUG_VERSION: 3<br>"
         f"settings module: {settings.SETTINGS_MODULE}<br>"
         f"middleware has auth: {'django.contrib.auth.middleware.AuthenticationMiddleware' in settings.MIDDLEWARE}<br>"
