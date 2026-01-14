@@ -30,9 +30,9 @@ INSTALLED_APPS = [
     "portal",
 ]
 
-MIDDLEWARE = MIDDLEWARE = [
+MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # keep if you added it
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # ok if you use it
 
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -41,6 +41,7 @@ MIDDLEWARE = MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
 
 ROOT_URLCONF = "elitecare.urls"
 
