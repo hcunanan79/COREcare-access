@@ -43,8 +43,12 @@ def employee_dashboard(request):
     return render(request, "portal/employee_dashboard.html")
 from django.http import HttpResponse
 
+from django.conf import settings
+from django.http import HttpResponse
+
 def debug_request(request):
     return HttpResponse(f"""
     user attribute exists: {hasattr(request, 'user')}<br>
-    middleware loaded: {request.META.get('DJANGO_SETTINGS_MODULE')}
+    settings module: {settings.SETTINGS_MODULE}<br>
+    middleware count: {len(settings.MIDDLEWARE)}
     """)
