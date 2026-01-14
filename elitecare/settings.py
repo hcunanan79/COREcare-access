@@ -1,13 +1,13 @@
 from pathlib import Path
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "django-insecure-change-me"
+SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
+
 DEBUG = True
 
-# DEV ONLY (safe for local). For production you’ll lock this down.
 ALLOWED_HOSTS = ["*"]
-    
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -16,17 +16,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "caregiver_portal",
-    "assessments", 
-    "credentials",
-    "notifications",
-    "employees",
 
-    # your apps
-    "clients",
-    "shifts",
-    "timeclock",
-    "scheduling",
     "portal",
 ]
 
@@ -42,13 +32,12 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-
 ROOT_URLCONF = "elitecare.urls"
 
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],  # optional global templates folder
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -78,46 +67,17 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = "America/Los_Angeles"
+
+TIME_ZONE = "UTC"
+
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "static/"
-STATICFILES_DIRS = [BASE_DIR / "static",]
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-import os
-
-MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-
-# Intentionally left empty.
-# CareAssessment is shown only as an inline under Clients.
-
-CREDENTIAL_ALERT_DAYS = [60, 30, 14]
-
-CREDENTIAL_ADMIN_RECIPIENTS = [
-    "you@yourcompany.com",
-    "office@yourcompany.com",
-]
-
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL = "alerts@localhost"
-
-LOGIN_URL = "/admin/login/"
-
-import os
-
-STATIC_URL = "/static/"
-
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "portal/static"),
-]
-
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-
-
-
-
-
-
+LOGIN_URL = "/portal/login/"
+LOGIN_REDIRECT_URL = "/portal/dashboard/"
+LOGOUT_REDIRECT_URL = "/portal/login/"
