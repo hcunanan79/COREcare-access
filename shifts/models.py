@@ -60,6 +60,14 @@ class Shift(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        indexes = [
+            # Optimizes dashboard queries: filter by caregiver + date range (today's shifts, upcoming shifts)
+            models.Index(fields=['caregiver', 'start_time'], name='idx_shift_cg_start'),
+            # Optimizes reverse-chronological ordering (most recent shifts first)
+            models.Index(fields=['caregiver', '-start_time'], name='idx_shift_cg_start_desc'),
+        ]
+
     def clean(self):
         if self.end_time and self.start_time and self.end_time <= self.start_time:
             raise ValidationError("End time must be after start time.")
