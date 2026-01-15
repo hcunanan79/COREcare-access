@@ -1,7 +1,28 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login
+from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
+
+
+def login_view(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        user = authenticate(request, username=username, password=password)
+        if user:
+            login(request, user)
+            # Redirect to 'next' if it exists, otherwise dashboard
+            next_url = request.GET.get("next") or "/portal/dashboard/"
+            return redirect(next_url)
+
+        return render(
+            request,
+            "portal/login.html",
+            {"error": "Invalid login"}
+        )
+
+    return render(request, "portal/login.html")
 
 
 def portal_home(request):
