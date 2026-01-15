@@ -45,4 +45,6 @@ def signup(request):
 
 @login_required
 def employee_dashboard(request):
-    return render(request, "portal/employee_dashboard.html")
+    from shifts.models import Shift
+    shifts = Shift.objects.filter(caregiver=request.user).order_by('start_time')
+    return render(request, "portal/employee_dashboard.html", {"shifts": shifts})
