@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('caregiver_portal', '0002_visit_invoice'),
+        ('caregiver_portal', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
@@ -32,10 +32,6 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name='visit',
             name='duration_hours',
-        ),
-        migrations.RemoveField(
-            model_name='visit',
-            name='invoice',
         ),
         migrations.RemoveField(
             model_name='visit',
