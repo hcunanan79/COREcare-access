@@ -5,6 +5,91 @@
   <title>My Dashboard | CORECare</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    /* Issue #11: Loading skeleton animations */
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+      border-radius: 8px;
+    }
+
+    @keyframes loading {
+      0% {
+        background-position: 200% 0;
+      }
+
+      100% {
+        background-position: -200% 0;
+      }
+    }
+
+    .skeleton-card {
+      height: 150px;
+      margin-bottom: 16px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Issue #10: Confirmation dialog */
+    .confirm-modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .confirm-modal.show {
+      display: flex;
+    }
+
+    .confirm-content {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .confirm-content h3 {
+      margin: 0 0 15px 0;
+      color: #417690;
+    }
+
+    .confirm-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .confirm-buttons button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn-confirm {
+      background: #44ac44;
+      color: white;
+    }
+
+    .btn-cancel {
+      background: #ccc;
+      color: #333;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
       margin: 0;
@@ -343,8 +428,63 @@
     </div>
     {% endif %}
 
-
   </div>
+
+  <!-- Issue #10: Confirmation Modal -->
+  <div id="confirmModal" class="confirm-modal">
+    <div class="confirm-content">
+      <h3>Confirm Clock-In</h3>
+      <p id="confirmMessage"></p>
+      <div class="confirm-buttons">
+        <button class="btn-cancel" onclick="closeConfirmModal()">Cancel</button>
+        <button class="btn-confirm" onclick="confirmClockIn()">Clock In</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Issue #10: Confirmation dialog for clock-in
+    let pendingClockInUrl = null;
+
+    function showConfirmModal(clientName, shiftTime, url) {
+      const modal = document.getElementById('confirmModal');
+      const message = document.getElementById('confirmMessage');
+      message.textContent = `Clock in to ${clientName} shift starting at ${shiftTime}?`;
+      pendingClockInUrl = url;
+      modal.classList.add('show');
+    }
+
+    function closeConfirmModal() {
+      const modal = document.getElementById('confirmModal');
+      modal.classList.remove('show');
+      pendingClockInUrl = null;
+    }
+
+    function confirmClockIn() {
+      if (pendingClockInUrl) {
+        window.location.href = pendingClockInUrl;
+      }
+    }
+
+    // Attach to clock-in buttons
+    document.addEventListener('DOMContentLoaded', function () {
+      const clockInButtons = document.querySelectorAll('.btn-primary[href*="clock-in"]');
+      clockInButtons.forEach(btn => {
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          const card = this.closest('.card');
+          const clientName = card.querySelector('h3').textContent;
+          const shiftTime = card.querySelector('.card-detail').textContent.trim();
+          showConfirmModal(clientName, shiftTime, this.href);
+        });
+      });
+    });
+
+    // Issue #11: Hide loading skeletons when content loads
+    window.addEventListener('load', function () {
+      document.querySelectorAll('.skeleton').forEach(el => el.classList.add('hidden'));
+    });
+  </script>
 
 </body>
 

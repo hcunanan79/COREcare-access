@@ -110,3 +110,56 @@ class VisitComment(models.Model):
 
     def __str__(self):
         return f"Comment on {self.visit} by {self.author}"
+
+
+class AuditLog(models.Model):
+    """Issue #9: Comprehensive audit logging for security and compliance."""
+    ACTION_CHOICES = [
+        ('clock_in', 'Clock In'),
+        ('clock_out', 'Clock Out'),
+        ('visit_create', 'Visit Created'),
+        ('visit_update', 'Visit Updated'),
+        ('visit_delete', 'Visit Deleted'),
+        ('mileage_update', 'Mileage Updated'),
+        ('login', 'User Login'),
+        ('logout', 'User Logout'),
+        ('permission_denied', 'Permission Denied'),
+    ]
+    
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='audit_logs',
+    )
+    action = models.CharField(max_length=50, choices=ACTION_CHOICES, db_index=True)
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+    
+    visit = models.ForeignKey(
+        Visit,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='audit_logs',
+    )
+    shift = models.ForeignKey(
+        'shifts.Shift',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)
+    details = models.JSONField(default=dict, blank=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['user', 'timestamp']),
+            models.Index(fields=['action', 'timestamp']),
+            models.Index(fields=['visit']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user} - {self.action} at {self.timestamp}"

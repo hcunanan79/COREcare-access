@@ -10,6 +10,7 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
+from django_ratelimit.decorators import ratelimit
 
 from clients.models import Client
 from caregiver_portal.models import Visit, VisitComment
@@ -60,6 +61,7 @@ def employee_dashboard(request):
 
 
 @login_required
+@ratelimit(key='user', rate='10/h', method='POST', block=True)
 def clock_in_shift(request, shift_id):
     """Clock in to a scheduled shift."""
     shift = get_object_or_404(Shift, id=shift_id)
