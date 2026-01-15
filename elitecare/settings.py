@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     "portal",
     "clients",
     "caregiver_portal",
+    "shifts",
 ]
 
 MIDDLEWARE = [
