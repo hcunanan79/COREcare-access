@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Shift Details - CORECare</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      line-height: 1.5;
+    }
+
+    .header {
+      background: #417690;
+      color: #fff;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .back-btn {
+      color: #fff;
+      text-decoration: none;
+      font-size: 20px;
+    }
+
+    .header-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 16px;
+    }
+
+    .header-actions a {
+      color: #79aec8;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .main {
+      padding: 16px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .client-card {
+      background: #fff;
+      border-left: 4px solid #417690;
+      padding: 16px;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .client-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: #417690;
+    }
+
+    .section {
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .section-icon {
+      font-size: 18px;
+      color: #417690;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #417690;
+      text-transform: uppercase;
+    }
+
+    .comment-box {
+      background: #f8f9fa;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .comment-text {
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 8px;
+      white-space: pre-wrap;
+    }
+
+    .comment-meta {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .empty-comments {
+      text-align: center;
+      padding: 20px;
+      color: #999;
+      font-style: italic;
+    }
+
+    .shift-info {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .shift-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+
+    .shift-label {
+      color: #666;
+    }
+
+    .shift-value {
+      font-weight: 600;
+    }
+
+    .shift-value.pending {
+      color: #e67e22;
+    }
+
+    .mileage-display {
+      background: #d5f4e6;
+      color: #1e8449;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .action-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .action-btn {
+      background: #e67e22;
+      color: #fff;
+      border: none;
+      padding: 14px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      display: block;
+    }
+
+    .action-btn:hover {
+      opacity: 0.9;
+    }
+
+    .clock-out-btn {
+      background: #417690;
+      color: #fff;
+      border: none;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      width: 100%;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    .clock-out-btn:hover {
+      background: #35606f;
+    }
+
+    .input-section {
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      display: none;
+    }
+
+    .input-section.show {
+      display: block;
+    }
+
+    .input-section label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #417690;
+    }
+
+    .input-section input,
+    .input-section textarea {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-family: inherit;
+    }
+
+    .input-section textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .input-section input:focus,
+    .input-section textarea:focus {
+      outline: none;
+      border-color: #417690;
+    }
+
+    .submit-btn {
+      background: #27ae60;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .submit-btn:hover {
+      background: #1e8449;
+    }
+
+    .already-clocked-out {
+      background: #d5f4e6;
+      color: #1e8449;
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      color: #417690;
+      text-decoration: none;
+      font-weight: 600;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-left">
+      <a href="{% url 'clock_page' %}" class="back-btn">←</a>
+      <span class="header-title">Shift Details</span>
+    </div>
+    <div class="header-actions">
+      <a href="{% url 'client_profile' visit.client.id %}">CARE PLAN</a>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <div class="client-card">
+      <div class="client-name">{{ visit.client }}</div>
+    </div>
+
+    <!-- Comments Section -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">Aa</span>
+        <span class="section-title">Comments from this shift</span>
+      </div>
+
+      {% if comments %}
+        {% for comment in comments %}
+          <div class="comment-box">
+            <div class="comment-text">{{ comment.text }}</div>
+            <div class="comment-meta">{{ comment.author }} • {{ comment.created_at|date:"M j, Y g:i A" }}</div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-comments">No comments yet</div>
+      {% endif %}
+    </div>
+
+    <!-- Shift Times -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🕐</span>
+        <span class="section-title">Shift tasks</span>
+      </div>
+
+      <div class="shift-info">
+        <div class="shift-row">
+          <span class="shift-label">Clock In:</span>
+          <span class="shift-value">{{ visit.clock_in|date:"g:i A" }}</span>
+        </div>
+        <div class="shift-row">
+          <span class="shift-label">Clock Out:</span>
+          {% if visit.clock_out %}
+            <span class="shift-value">{{ visit.clock_out|date:"g:i A" }}</span>
+          {% else %}
+            <span class="shift-value pending">-- (pending)</span>
+          {% endif %}
+        </div>
+        {% if visit.duration_hours %}
+        <div class="shift-row">
+          <span class="shift-label">Duration:</span>
+          <span class="shift-value">{{ visit.duration_hours }} hours</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Mileage Section (if already entered) -->
+    {% if visit.mileage %}
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🚗</span>
+        <span class="section-title">Mileage</span>
+      </div>
+      <div class="mileage-display">
+        <span>{{ visit.mileage }} miles</span>
+        <span>✓</span>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Mileage Input Form -->
+    <div class="input-section" id="mileage-form">
+      <form method="post" action="{% url 'add_mileage' visit.id %}">
+        {% csrf_token %}
+        <label for="mileage">Enter Total Miles</label>
+        <input type="number" id="mileage" name="mileage" placeholder="e.g., 12.5" step="0.1" min="0" value="{{ visit.mileage|default:'' }}">
+        <button type="submit" class="submit-btn">Save Mileage</button>
+      </form>
+    </div>
+
+    <!-- Comment Input Form -->
+    <div class="input-section" id="comment-form">
+      <form method="post" action="{% url 'add_comment' visit.id %}">
+        {% csrf_token %}
+        <label for="text">Add a Comment</label>
+        <textarea id="text" name="text" placeholder="How is the client today?"></textarea>
+        <button type="submit" class="submit-btn">Add Comment</button>
+      </form>
+    </div>
+
+    {% if not visit.clock_out %}
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="action-btn" onclick="toggleForm('mileage-form')">ADD MILEAGE</button>
+        <button class="action-btn" onclick="toggleForm('comment-form')">ADD COMMENT</button>
+      </div>
+
+      <!-- Clock Out Form -->
+      <form method="post">
+        {% csrf_token %}
+        {% if not visit.mileage %}
+          <input type="hidden" name="mileage" id="hidden-mileage" value="">
+        {% endif %}
+        <button type="submit" class="clock-out-btn">CLOCK OUT</button>
+      </form>
+    {% else %}
+      <div class="already-clocked-out">
+        ✓ Shift completed at {{ visit.clock_out|date:"g:i A" }}
+      </div>
+      <a href="{% url 'weekly_summary' %}" class="back-link">← Back to Weekly Summary</a>
+    {% endif %}
+
+  </div>
+
+  <script>
+    function toggleForm(formId) {
+      const form = document.getElementById(formId);
+      const isVisible = form.classList.contains('show');
+
+      // Hide all forms first
+      document.querySelectorAll('.input-section').forEach(el => {
+        el.classList.remove('show');
+      });
+
+      // Toggle the clicked form
+      if (!isVisible) {
+        form.classList.add('show');
+        // Focus the input
+        const input = form.querySelector('input, textarea');
+        if (input) input.focus();
+      }
+    }
+  </script>
+
+</body>
+</html>

@@ -10,10 +10,8 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 
 from clients.models import Client
-from caregiver_portal.models import Visit
+from caregiver_portal.models import Visit, VisitComment
 
-from django.shortcuts import get_object_or_404, render
-from clients.models import Client
 
 def client_profile(request, client_id):
     client = get_object_or_404(Client, id=client_id)
@@ -21,7 +19,7 @@ def client_profile(request, client_id):
 
 
 def is_admin(user):
-    return user.is_staff  # you can change to user.is_superuser if you want
+    return user.is_staff
 
 
 def parse_date(value):
@@ -54,7 +52,6 @@ def clock_page(request):
             notes=notes,
         )
 
-        # If you already have a different flow for clocking out, you can change this redirect.
         return redirect("clock_out", visit_id=visit.id)
 
     return render(
@@ -70,8 +67,18 @@ def clock_page(request):
 @login_required
 def clock_out(request, visit_id):
     visit = get_object_or_404(Visit, id=visit_id, caregiver=request.user)
+    comments = visit.comments.all()
 
     if request.method == "POST":
+        # Handle mileage
+        mileage = request.POST.get("mileage")
+        if mileage:
+            try:
+                visit.mileage = Decimal(mileage)
+            except Exception:
+                pass
+
+        # Clock out
         visit.clock_out = timezone.now()
 
         if visit.clock_in:
@@ -80,10 +87,48 @@ def clock_out(request, visit_id):
             visit.duration_hours = Decimal(str(hours))
 
         visit.save()
-        return render(request, "caregiver/clock_out.html", {"visit": visit})
+        return redirect("weekly_summary")
 
-    # If they open the clock-out page, show the details and a button to clock out.
-    return render(request, "caregiver/clock_out.html", {"visit": visit})
+    return render(
+        request,
+        "caregiver/clock_out.html",
+        {
+            "visit": visit,
+            "comments": comments,
+        },
+    )
+
+
+@login_required
+def add_comment(request, visit_id):
+    visit = get_object_or_404(Visit, id=visit_id, caregiver=request.user)
+
+    if request.method == "POST":
+        text = request.POST.get("text", "").strip()
+        if text:
+            VisitComment.objects.create(
+                visit=visit,
+                author=request.user,
+                text=text,
+            )
+
+    return redirect("clock_out", visit_id=visit.id)
+
+
+@login_required
+def add_mileage(request, visit_id):
+    visit = get_object_or_404(Visit, id=visit_id, caregiver=request.user)
+
+    if request.method == "POST":
+        mileage = request.POST.get("mileage", "").strip()
+        if mileage:
+            try:
+                visit.mileage = Decimal(mileage)
+                visit.save()
+            except Exception:
+                pass
+
+    return redirect("clock_out", visit_id=visit.id)
 
 
 @login_required
@@ -91,8 +136,8 @@ def weekly_summary(request):
     today = timezone.localdate()
 
     # Monday -> Sunday
-    start_of_week = today - timedelta(days=today.weekday())  # Monday
-    end_of_week = start_of_week + timedelta(days=6)          # Sunday
+    start_of_week = today - timedelta(days=today.weekday())
+    end_of_week = start_of_week + timedelta(days=6)
 
     visits = Visit.objects.filter(
         caregiver=request.user,
@@ -118,15 +163,15 @@ def weekly_summary(request):
 def admin_payroll(request):
     today = timezone.localdate()
 
-    default_start = today - timedelta(days=today.weekday())  # Monday
-    default_end = default_start + timedelta(days=6)          # Sunday
+    default_start = today - timedelta(days=today.weekday())
+    default_end = default_start + timedelta(days=6)
 
     start_param = request.GET.get("start")
     end_param = request.GET.get("end")
 
     start_date = parse_date(start_param) or default_start
     end_date = parse_date(end_param) or default_end
-    
+
     shift = request.GET.get("shift")
     if shift == "prev":
         start_date = start_date - timedelta(days=7)
@@ -135,18 +180,18 @@ def admin_payroll(request):
         start_date = start_date + timedelta(days=7)
         end_date = end_date + timedelta(days=7)
 
-
     User = get_user_model()
 
-    # (keeping your current rule: staff users are caregivers)
-    caregivers = User.objects.filter(is_active=True, groups__name="Caregiver"
-).order_by("username")
+    caregivers = User.objects.filter(
+        is_active=True,
+        groups__name="Caregiver"
+    ).order_by("username")
 
     rows = []
     for cg in caregivers:
         total = (
             Visit.objects.filter(
-                caregiver_name=cg.username,
+                caregiver=cg,
                 clock_in__date__range=[start_date, end_date],
                 duration_hours__isnull=False,
             )
@@ -176,8 +221,8 @@ def admin_payroll(request):
 def admin_payroll_csv(request):
     today = timezone.localdate()
 
-    default_start = today - timedelta(days=today.weekday())  # Monday
-    default_end = default_start + timedelta(days=6)          # Sunday
+    default_start = today - timedelta(days=today.weekday())
+    default_end = default_start + timedelta(days=6)
 
     start_param = request.GET.get("start")
     end_param = request.GET.get("end")
@@ -202,7 +247,7 @@ def admin_payroll_csv(request):
                 caregiver=cg,
                 clock_in__date__range=[start_date, end_date],
                 duration_hours__isnull=False,
-                )
+            )
             .aggregate(total=Sum("duration_hours"))["total"]
             or 0
         )
