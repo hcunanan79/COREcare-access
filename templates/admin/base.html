@@ -1,9 +1,8 @@
 {% extends "admin/base.html" %}
 {% load static %}
 
-{% block extrahead %}
+{% block extrastyle %}
 {{ block.super }}
-
 <!-- Google Font: Nunito -->
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
 
@@ -14,7 +13,6 @@
 <link rel="stylesheet" href="{% static 'admin/css/custom.css' %}">
 
 <style>
-/* Icon styling */
 .admin-icon {
   margin-right: 8px;
   font-size: 1.1em;
@@ -22,10 +20,12 @@
   opacity: 0.85;
 }
 </style>
+{% endblock %}
 
+{% block footer %}
+{{ block.super }}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Map model names to Bootstrap Icons
+(function() {
   const iconMap = {
     'care team': 'bi-people-fill',
     'groups': 'bi-people',
@@ -34,30 +34,20 @@ document.addEventListener('DOMContentLoaded', function() {
     'employee credentials': 'bi-file-earmark-text',
     'shifts': 'bi-calendar-event',
     'time entrys': 'bi-clock',
-    'visits': 'bi-house-door',
-    'assessments': 'bi-clipboard-check',
-    'schedules': 'bi-calendar-week',
-    'notifications': 'bi-bell',
-    'employees': 'bi-person-vcard'
+    'visits': 'bi-house-door'
   };
 
-  // Find all model links in the admin
-  document.querySelectorAll('th a, td a').forEach(function(link) {
+  document.querySelectorAll('th a').forEach(function(link) {
     const text = link.textContent.trim().toLowerCase();
-
-    // Check if we have an icon for this model
     for (const [model, iconClass] of Object.entries(iconMap)) {
-      if (text === model || text === model.replace(' ', '')) {
-        // Only add icon if not already present
-        if (!link.querySelector('.admin-icon')) {
-          const icon = document.createElement('i');
-          icon.className = 'bi ' + iconClass + ' admin-icon';
-          link.insertBefore(icon, link.firstChild);
-        }
+      if (text === model) {
+        const icon = document.createElement('i');
+        icon.className = 'bi ' + iconClass + ' admin-icon';
+        link.insertBefore(icon, link.firstChild);
         break;
       }
     }
   });
-});
+})();
 </script>
 {% endblock %}
