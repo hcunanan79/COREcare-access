@@ -1,4 +1,122 @@
+/* COREcare Admin Custom Styles */
+
 /* Use Nunito everywhere */
 body, input, textarea, select, button {
   font-family: 'Nunito', sans-serif;
+}
+
+/* =====================================================
+   SIDEBAR ICONS - Using Bootstrap Icons
+   ===================================================== */
+
+/* Base icon styling for all sidebar links */
+#nav-sidebar .model-caption::before,
+#nav-sidebar th a::before {
+  font-family: 'bootstrap-icons';
+  margin-right: 8px;
+  font-size: 1.1em;
+  vertical-align: middle;
+  opacity: 0.8;
+}
+
+/* Authentication & Authorization */
+tr.model-user th a::before,
+a[href*="/auth/user/"]::before { content: "\F4DA"; } /* bi-person */
+
+tr.model-group th a::before,
+a[href*="/auth/group/"]::before { content: "\F4DB"; } /* bi-people */
+
+/* Care Team (proxy for users) */
+tr.model-careteam th a::before,
+a[href*="/employees/careteam/"]::before { content: "\F4DB"; } /* bi-people */
+
+/* Clients */
+tr.model-client th a::before,
+a[href*="/clients/client/"]::before { content: "\F4DA"; } /* bi-person */
+
+/* Caregiver Portal - Visits */
+tr.model-visit th a::before,
+a[href*="/caregiver_portal/visit/"]::before { content: "\F5A0"; } /* bi-house-door */
+
+/* Shifts */
+tr.model-shift th a::before,
+a[href*="/shifts/shift/"]::before { content: "\F1F6"; } /* bi-calendar-event */
+
+/* Timeclock - Time Entries */
+tr.model-timeentry th a::before,
+a[href*="/timeclock/timeentry/"]::before { content: "\F293"; } /* bi-clock */
+
+/* Credentials */
+tr.model-employeecredential th a::before,
+a[href*="/credentials/employeecredential/"]::before { content: "\F32A"; } /* bi-file-earmark-text */
+
+/* Employees */
+tr.model-employee th a::before,
+tr.model-employeeprofile th a::before,
+a[href*="/employees/employee/"]::before { content: "\F4D9"; } /* bi-person-badge */
+
+/* Assessments */
+tr.model-assessment th a::before,
+a[href*="/assessments/"]::before { content: "\F2B5"; } /* bi-clipboard-check */
+
+/* Scheduling */
+tr.model-schedule th a::before,
+a[href*="/scheduling/"]::before { content: "\F1F5"; } /* bi-calendar-week */
+
+/* Notifications */
+tr.model-notification th a::before,
+a[href*="/notifications/"]::before { content: "\F131"; } /* bi-bell */
+
+/* =====================================================
+   APP SECTION HEADERS
+   ===================================================== */
+
+/* Style the app section captions */
+.app-caregiver_portal caption::before { content: "\F5A0"; margin-right: 8px; font-family: 'bootstrap-icons'; }
+.app-clients caption::before { content: "\F4DA"; margin-right: 8px; font-family: 'bootstrap-icons'; }
+.app-shifts caption::before { content: "\F1F6"; margin-right: 8px; font-family: 'bootstrap-icons'; }
+.app-timeclock caption::before { content: "\F293"; margin-right: 8px; font-family: 'bootstrap-icons'; }
+.app-credentials caption::before { content: "\F32A"; margin-right: 8px; font-family: 'bootstrap-icons'; }
+.app-employees caption::before { content: "\F4DB"; margin-right: 8px; font-family: 'bootstrap-icons'; }
+
+/* =====================================================
+   SIDEBAR ENHANCEMENTS
+   ===================================================== */
+
+/* Improve sidebar visual hierarchy */
+#nav-sidebar {
+  background: #f8f9fa;
+}
+
+#nav-sidebar .module caption {
+  font-weight: 600;
+  padding: 12px 16px;
+  background: #417690;
+  color: #fff;
+  border-radius: 4px 4px 0 0;
+}
+
+#nav-sidebar .module th {
+  padding: 8px 16px;
+}
+
+#nav-sidebar .module th a {
+  color: #333;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+#nav-sidebar .module th a:hover {
+  color: #417690;
+}
+
+/* Add/Change links styling */
+#nav-sidebar .module td a {
+  opacity: 0.6;
+  font-size: 0.85em;
+}
+
+#nav-sidebar .module td a:hover {
+  opacity: 1;
 }
