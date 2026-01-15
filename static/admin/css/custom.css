@@ -103,3 +103,72 @@ tr.model-visit th a::before { content: "\F5A0"; } /* bi-house-door */
 #nav-sidebar .module th a:hover {
   color: #417690;
 }
+
+/* =====================================================
+   TILE DASHBOARD - Mobile-friendly Admin Index
+   ===================================================== */
+
+.tile-dashboard {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #fff;
+  font-weight: 600;
+  font-size: 16px;
+  min-height: 120px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  text-decoration: none;
+  color: #fff;
+}
+
+.tile:visited {
+  color: #fff;
+}
+
+.tile i {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+/* Tile Color Variants */
+.tile-blue { background: linear-gradient(135deg, #4A90D9, #357ABD); }
+.tile-purple { background: linear-gradient(135deg, #9B59B6, #8E44AD); }
+.tile-teal { background: linear-gradient(135deg, #417690, #35606F); }
+.tile-green { background: linear-gradient(135deg, #27AE60, #1E8449); }
+.tile-orange { background: linear-gradient(135deg, #E67E22, #D35400); }
+.tile-red { background: linear-gradient(135deg, #E74C3C, #C0392B); }
+.tile-yellow {
+  background: linear-gradient(135deg, #F1C40F, #D4AC0D);
+  color: #333;
+}
+.tile-yellow:hover,
+.tile-yellow:visited {
+  color: #333;
+}
+
+/* Desktop - 3 column layout */
+@media (min-width: 768px) {
+  .tile-dashboard {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 800px;
+  }
+}

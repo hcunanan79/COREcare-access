@@ -1,27 +1,41 @@
-{% extends "admin/index.html" %}
-{% load dashboard_tags %}
+{% extends "admin/base_site.html" %}
+{% load static %}
 
-{% block sidebar %}
-  <div style="padding: 14px; background: white; border: 1px solid #ddd; border-radius: 6px;">
-    <h2 style="margin-top:0;">Current Schedule (Next 7 Days)</h2>
+{% block content %}
+<div class="tile-dashboard">
+  <a href="/admin/shifts/shift/" class="tile tile-blue">
+    <i class="bi bi-calendar-event"></i>
+    <span>Shifts</span>
+  </a>
 
-    {% upcoming_shifts 7 as shifts %}
-    {% if shifts %}
-      <ul style="margin:0; padding-left:18px;">
-        {% for s in shifts %}
-          <li style="margin-bottom:10px;">
-            <strong>{{ s.start_time|date:"D, M j" }}</strong>
-            {{ s.start_time|time:"g:i A" }} – {{ s.end_time|time:"g:i A" }}
-            <br>
-            {{ s }}
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p style="margin:0;">No upcoming shifts.</p>
-    {% endif %}
+  <a href="/admin/clients/client/" class="tile tile-purple">
+    <i class="bi bi-person-badge"></i>
+    <span>Clients</span>
+  </a>
 
-    <hr>
-    <a href="/admin/shifts/shift/" style="font-weight:600;">View all shifts →</a>
-  </div>
+  <a href="/admin/auth/careteam/" class="tile tile-teal">
+    <i class="bi bi-people-fill"></i>
+    <span>Care Team</span>
+  </a>
+
+  <a href="/admin/auth/user/" class="tile tile-green">
+    <i class="bi bi-person"></i>
+    <span>Users</span>
+  </a>
+
+  <a href="/admin/auth/group/" class="tile tile-orange">
+    <i class="bi bi-people"></i>
+    <span>Groups</span>
+  </a>
+
+  <a href="/admin/timeclock/timeentry/" class="tile tile-red">
+    <i class="bi bi-clock"></i>
+    <span>Time Clock</span>
+  </a>
+
+  <a href="/admin/credentials/employeecredential/" class="tile tile-yellow">
+    <i class="bi bi-file-earmark-text"></i>
+    <span>Credentials</span>
+  </a>
+</div>
 {% endblock %}
