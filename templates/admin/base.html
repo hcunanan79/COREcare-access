@@ -12,4 +12,52 @@
 
 <!-- Your custom styles -->
 <link rel="stylesheet" href="{% static 'admin/css/custom.css' %}">
+
+<style>
+/* Icon styling */
+.admin-icon {
+  margin-right: 8px;
+  font-size: 1.1em;
+  vertical-align: middle;
+  opacity: 0.85;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Map model names to Bootstrap Icons
+  const iconMap = {
+    'care team': 'bi-people-fill',
+    'groups': 'bi-people',
+    'users': 'bi-person',
+    'clients': 'bi-person-badge',
+    'employee credentials': 'bi-file-earmark-text',
+    'shifts': 'bi-calendar-event',
+    'time entrys': 'bi-clock',
+    'visits': 'bi-house-door',
+    'assessments': 'bi-clipboard-check',
+    'schedules': 'bi-calendar-week',
+    'notifications': 'bi-bell',
+    'employees': 'bi-person-vcard'
+  };
+
+  // Find all model links in the admin
+  document.querySelectorAll('th a, td a').forEach(function(link) {
+    const text = link.textContent.trim().toLowerCase();
+
+    // Check if we have an icon for this model
+    for (const [model, iconClass] of Object.entries(iconMap)) {
+      if (text === model || text === model.replace(' ', '')) {
+        // Only add icon if not already present
+        if (!link.querySelector('.admin-icon')) {
+          const icon = document.createElement('i');
+          icon.className = 'bi ' + iconClass + ' admin-icon';
+          link.insertBefore(icon, link.firstChild);
+        }
+        break;
+      }
+    }
+  });
+});
+</script>
 {% endblock %}
