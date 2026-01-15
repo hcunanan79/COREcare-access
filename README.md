@@ -2,9 +2,15 @@
 
 A Django-based home care management platform for coordinating caregivers, clients, scheduling, and credentials tracking.
 
-## Live Application
+## Quick Links
 
-**Production URL:** https://corecare-access.onrender.com
+| Resource | Description |
+|----------|-------------|
+| [Production App](https://corecare-access.onrender.com) | Live application |
+| [Admin Panel](https://corecare-access.onrender.com/admin/) | Administration interface |
+| [Architecture Guide](docs/ARCHITECTURE.md) | System design & overview |
+| [Employee Onboarding](docs/EMPLOYEE_ONBOARDING.md) | New employee signup guide |
+| [Contributing Guide](CONTRIBUTING.md) | Developer guidelines |
 
 ## Features
 
@@ -203,11 +209,20 @@ ssh srv-d5iu087pm1nc73fhf8k0@ssh.virginia.render.com "python manage.py createsup
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/your-feature`)
-3. Commit your changes (`git commit -m 'Add your feature'`)
-4. Push to the branch (`git push origin feature/your-feature`)
-5. Open a Pull Request
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed developer guidelines, including:
+
+- Branch strategy and workflow
+- Code style conventions
+- Pull request process
+- Common development tasks
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture, app structure, data flow |
+| [EMPLOYEE_ONBOARDING.md](docs/EMPLOYEE_ONBOARDING.md) | How to invite and onboard new employees |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Developer setup and contribution guidelines |
 
 ## License
 
