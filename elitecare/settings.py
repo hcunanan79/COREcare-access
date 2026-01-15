@@ -91,3 +91,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "/portal/login/"
 LOGIN_REDIRECT_URL = "/portal/dashboard/"
 LOGOUT_REDIRECT_URL = "/portal/login/"
+
+# Employee registration invite code
+# Set via environment variable or use default for development
+EMPLOYEE_INVITE_CODE = os.environ.get("EMPLOYEE_INVITE_CODE", "CORECARE")
