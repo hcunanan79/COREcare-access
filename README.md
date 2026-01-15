@@ -21,7 +21,7 @@ A Django-based home care management platform for coordinating caregivers, client
 ## Tech Stack
 
 - **Framework:** Django 5.2.9
-- **Database:** SQLite (development) / PostgreSQL 16 (production)
+- **Database:** PostgreSQL 16 (both development and production)
 - **Server:** Gunicorn
 - **Static Files:** WhiteNoise
 - **Geolocation:** GeoPy
@@ -31,17 +31,24 @@ A Django-based home care management platform for coordinating caregivers, client
 
 ### Database
 
-The application uses a flexible database configuration via `dj_database_url`:
+The application uses PostgreSQL 16 in both development and production for consistency:
 
-- **Local Development:** SQLite (`db.sqlite3`) - no setup required
+- **Local Development:** PostgreSQL running locally (via Homebrew, apt, or Docker)
 - **Production:** PostgreSQL 16 hosted on Render
   - Database: `corecare-db`
   - Region: Virginia (US East)
   - Persistent storage ensures data survives deployments
 
-The database configuration automatically detects the environment:
-- If `DATABASE_URL` environment variable is set, it uses PostgreSQL
-- Otherwise, it falls back to SQLite for local development
+The database is configured via the `DATABASE_URL` environment variable using `dj_database_url`.
+
+### Data Sync
+
+Developers can sync production data to their local database:
+```bash
+./scripts/sync_from_prod.sh
+```
+
+This creates a backup from production and restores it locally, ensuring developers work with realistic data. Backups are stored in `./backups/` (last 5 retained).
 
 ### Deployment Pipeline
 
@@ -54,6 +61,7 @@ The database configuration automatically detects the environment:
 
 - Python 3.11+
 - pip
+- PostgreSQL 16 (local installation)
 
 ## Local Development Setup
 
@@ -74,24 +82,56 @@ The database configuration automatically detects the environment:
    pip install -r requirements.txt
    ```
 
-4. **Run migrations**
+4. **Set up local PostgreSQL database**
    ```bash
-   python manage.py migrate
+   # Install PostgreSQL if not already installed
+   # macOS: brew install postgresql@16 && brew services start postgresql@16
+   # Ubuntu: sudo apt-get install postgresql postgresql-contrib
+
+   # Run the setup script
+   ./scripts/setup_local_db.sh
    ```
 
-5. **Create a superuser (optional)**
+5. **Configure environment variables**
    ```bash
+   cp .env.example .env
+   # Edit .env if needed (defaults should work)
+
+   # Load environment variables
+   export $(cat .env | xargs)
+   ```
+
+6. **Sync data from production (recommended)**
+   ```bash
+   ./scripts/sync_from_prod.sh
+   ```
+
+7. **Or run fresh migrations**
+   ```bash
+   python manage.py migrate
    python manage.py createsuperuser
    ```
 
-6. **Run the development server**
+8. **Run the development server**
    ```bash
    python manage.py runserver
    ```
 
-7. **Access the application**
+9. **Access the application**
    - Main app: http://localhost:8000/
    - Admin panel: http://localhost:8000/admin/
+
+### Docker Alternative
+
+If you prefer Docker for PostgreSQL:
+```bash
+docker run --name corecare-postgres \
+  -e POSTGRES_PASSWORD=corecare_dev_password \
+  -e POSTGRES_USER=corecare_user \
+  -e POSTGRES_DB=corecare_dev \
+  -p 5432:5432 \
+  -d postgres:16
+```
 
 ## Project Structure
 
@@ -106,10 +146,15 @@ COREcare-access/
 ├── notifications/      # Notification system
 ├── portal/             # Main portal and authentication
 ├── scheduling/         # Scheduling functionality
+├── scripts/            # Development and deployment scripts
+│   ├── setup_local_db.sh   # Create local PostgreSQL database
+│   └── sync_from_prod.sh   # Sync production data to local
 ├── shifts/             # Shift management
 ├── static/             # Static assets
 ├── templates/          # HTML templates
 ├── timeclock/          # Time tracking
+├── backups/            # Database backups (gitignored)
+├── .env.example        # Example environment variables
 ├── manage.py           # Django management script
 ├── Procfile            # Render deployment config
 └── requirements.txt    # Python dependencies
