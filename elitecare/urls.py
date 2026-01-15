@@ -4,7 +4,7 @@ from django.shortcuts import redirect
 
 admin.site.site_header = "CORECare Access"
 admin.site.site_title = "CORECare Access"
-admin.site.index_title = "Easing the way to better care"
+admin.site.index_title = "Home : BayArea Elite Homecare"
 
 urlpatterns = [
     path("", lambda request: redirect("/portal/")),  # 👈 MUST BE FIRST
