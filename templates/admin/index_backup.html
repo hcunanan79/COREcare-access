@@ -1,0 +1,26 @@
+{% extends "admin/index.html" %}
+
+{% block sidebar %}
+  <div style="padding: 14px; background: white; border: 1px solid #ddd; border-radius: 6px;">
+    <h2 style="margin-top:0;">Current Schedule (Next 7 Days)</h2>
+
+    {% upcoming_shifts 7 as shifts %}
+    {% if shifts %}
+      <ul style="margin:0; padding-left:18px;">
+        {% for s in shifts %}
+          <li style="margin-bottom:10px;">
+            <strong>{{ s.start_time|date:"D, M j" }}</strong>
+            {{ s.start_time|time:"g:i A" }} – {{ s.end_time|time:"g:i A" }}
+            <br>
+            {{ s }}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p style="margin:0;">No upcoming shifts.</p>
+    {% endif %}
+
+    <hr>
+    <a href="/admin/shifts/shift/" style="font-weight:600;">View all shifts →</a>
+  </div>
+{% endblock %}
