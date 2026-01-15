@@ -21,11 +21,34 @@ A Django-based home care management platform for coordinating caregivers, client
 ## Tech Stack
 
 - **Framework:** Django 5.2.9
-- **Database:** SQLite (development) / PostgreSQL (production)
+- **Database:** SQLite (development) / PostgreSQL 16 (production)
 - **Server:** Gunicorn
 - **Static Files:** WhiteNoise
 - **Geolocation:** GeoPy
 - **Hosting:** Render
+
+## Architecture
+
+### Database
+
+The application uses a flexible database configuration via `dj_database_url`:
+
+- **Local Development:** SQLite (`db.sqlite3`) - no setup required
+- **Production:** PostgreSQL 16 hosted on Render
+  - Database: `corecare-db`
+  - Region: Virginia (US East)
+  - Persistent storage ensures data survives deployments
+
+The database configuration automatically detects the environment:
+- If `DATABASE_URL` environment variable is set, it uses PostgreSQL
+- Otherwise, it falls back to SQLite for local development
+
+### Deployment Pipeline
+
+1. Code pushed to `main` branch triggers auto-deploy on Render
+2. Build phase: Install dependencies and collect static files
+3. Migrations are run manually via SSH after deployment
+4. Gunicorn serves the application
 
 ## Prerequisites
 
@@ -96,13 +119,14 @@ COREcare-access/
 
 For production deployment, set the following environment variables:
 
-| Variable | Description |
-|----------|-------------|
-| `SECRET_KEY` | Django secret key |
-| `DEBUG` | Set to `False` in production |
-| `ALLOWED_HOSTS` | Comma-separated list of allowed hosts |
-| `DATABASE_URL` | PostgreSQL connection string (optional) |
-| `DJANGO_SETTINGS_MODULE` | `elitecare.settings` |
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `SECRET_KEY` | Django secret key for cryptographic signing | Yes |
+| `DEBUG` | Set to `False` in production | Yes |
+| `ALLOWED_HOSTS` | Comma-separated list of allowed hosts | Yes |
+| `DATABASE_URL` | PostgreSQL connection string (internal Render URL) | Yes |
+| `DJANGO_SETTINGS_MODULE` | `elitecare.settings` | Yes |
+| `EMPLOYEE_INVITE_CODE` | Code for employee self-registration | No |
 
 ## Deployment
 
@@ -116,6 +140,20 @@ pip install -r requirements.txt && python manage.py collectstatic --noinput
 ### Start Command
 ```bash
 gunicorn elitecare.wsgi:application
+```
+
+### Running Migrations
+
+After deployment, run migrations via SSH:
+```bash
+ssh srv-d5iu087pm1nc73fhf8k0@ssh.virginia.render.com "python manage.py migrate"
+```
+
+### Creating Admin Users
+
+To create or reset an admin user via SSH:
+```bash
+ssh srv-d5iu087pm1nc73fhf8k0@ssh.virginia.render.com "python manage.py createsuperuser"
 ```
 
 ## Contributing
