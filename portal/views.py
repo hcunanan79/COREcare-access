@@ -1,7 +1,12 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from .forms import SignUpForm
+
+
+def logout_view(request):
+    logout(request)
+    return redirect("/portal/login/")
 
 
 def login_view(request):
@@ -46,5 +51,8 @@ def signup(request):
 @login_required
 def employee_dashboard(request):
     from shifts.models import Shift
+    from django.utils import timezone
+
     shifts = Shift.objects.filter(caregiver=request.user).order_by('start_time')
-    return render(request, "portal/employee_dashboard.html", {"shifts": shifts})
+    today = timezone.now().date()
+    return render(request, "portal/employee_dashboard.html", {"shifts": shifts, "today": today})

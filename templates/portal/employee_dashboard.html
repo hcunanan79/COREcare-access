@@ -1,23 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Caregiver Portal</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Shifts | CORECare Access</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/portal.css">
 </head>
 <body>
-    <h1>My Assigned Shifts</h1>
+    <header class="header">
+        <a href="/portal/dashboard/" class="header-brand">CORECare Access</a>
+        <nav class="header-nav">
+            <span class="header-user">Welcome, {{ user.username }}</span>
+            <a href="/portal/logout/">Log out</a>
+        </nav>
+    </header>
 
-    {% if shifts %}
-        <ul>
+    <main class="main-content">
+        <h1 class="page-title">My Assigned Shifts</h1>
+        <p class="page-subtitle">View your upcoming scheduled shifts</p>
+
+        {% if shifts %}
             {% for s in shifts %}
-                <li>
-                    <strong>{{ s.client }}</strong><br>
-                    Caregiver: {{ s.caregiver }}<br>
-                    {{ s.start_time }} – {{ s.end_time }}
-                </li>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">{{ s.client }}</h2>
+                    {% if s.start_time.date == today %}
+                    <span class="card-badge today">Today</span>
+                    {% else %}
+                    <span class="card-badge upcoming">Upcoming</span>
+                    {% endif %}
+                </div>
+                <div class="card-detail">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>{{ s.start_time|date:"l, F j, Y" }}</span>
+                </div>
+                <div class="card-detail">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{{ s.start_time|time:"g:i A" }} – {{ s.end_time|time:"g:i A" }}</span>
+                </div>
+                {% if s.notes %}
+                <div class="card-detail">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>{{ s.notes }}</span>
+                </div>
+                {% endif %}
+            </div>
             {% endfor %}
-        </ul>
-    {% else %}
-        <p>No shifts assigned yet.</p>
-    {% endif %}
+        {% else %}
+            <div class="card empty-state">
+                <div class="empty-state-icon">📋</div>
+                <h2 class="empty-state-title">No shifts assigned yet</h2>
+                <p class="empty-state-text">When you're assigned shifts, they'll appear here.</p>
+            </div>
+        {% endif %}
+    </main>
 </body>
 </html>
