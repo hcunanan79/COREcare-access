@@ -21,6 +21,12 @@ INSTALLED_APPS = [
     "clients",
     "caregiver_portal",
     "shifts",
+    "assessments",
+    "credentials",
+    "employees",
+    "notifications",
+    "scheduling",
+    "timeclock",
 ]
 
 MIDDLEWARE = [
