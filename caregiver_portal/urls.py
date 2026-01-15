@@ -1,5 +1,7 @@
 from django.urls import path
 from .views import (
+    employee_dashboard,
+    clock_in_shift,
     clock_page,
     clock_out,
     add_comment,
@@ -11,6 +13,11 @@ from .views import (
 )
 
 urlpatterns = [
+    # Unified dashboard (NEW)
+    path("dashboard/", employee_dashboard, name="employee_dashboard"),
+    # Clock in to scheduled shift (NEW)
+    path("shift/<int:shift_id>/clock-in/", clock_in_shift, name="clock_in_shift"),
+    # Unscheduled visit (EXISTING)
     path("clock/", clock_page, name="clock_page"),
     path("clock-out/<int:visit_id>/", clock_out, name="clock_out"),
     path("clock-out/<int:visit_id>/add-comment/", add_comment, name="add_comment"),

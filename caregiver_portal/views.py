@@ -2,8 +2,10 @@ import csv
 from datetime import timedelta
 from decimal import Decimal
 
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.exceptions import PermissionDenied
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
@@ -11,6 +13,77 @@ from django.utils import timezone
 
 from clients.models import Client
 from caregiver_portal.models import Visit, VisitComment
+from shifts.models import Shift
+
+
+@login_required
+def employee_dashboard(request):
+    """Unified dashboard showing shifts, clock-in/out actions, and weekly summary."""
+    today = timezone.localdate()
+    caregiver = request.user
+    
+    # Today's shifts
+    todays_shifts = Shift.objects.filter(
+        caregiver=caregiver,
+        start_time__date=today
+    ).select_related('client').order_by('start_time')
+    
+    # Active visit (currently clocked in)
+    active_visit = Visit.objects.filter(
+        caregiver=caregiver,
+        clock_out__isnull=True
+    ).select_related('client', 'shift').first()
+    
+    # Upcoming shifts (next 7 days)
+    upcoming_shifts = Shift.objects.filter(
+        caregiver=caregiver,
+        start_time__date__gt=today,
+        start_time__date__lte=today + timedelta(days=7)
+    ).select_related('client').order_by('start_time')[:10]
+    
+    # Weekly hours summary
+    start_of_week = today - timedelta(days=today.weekday())
+    weekly_hours = Visit.objects.filter(
+        caregiver=caregiver,
+        clock_in__date__gte=start_of_week,
+        duration_hours__isnull=False
+    ).aggregate(total=Sum('duration_hours'))['total'] or 0
+    
+    context = {
+        'todays_shifts': todays_shifts,
+        'active_visit': active_visit,
+        'upcoming_shifts': upcoming_shifts,
+        'weekly_hours': round(float(weekly_hours), 2),
+    }
+    
+    return render(request, 'caregiver_portal/employee_dashboard.html', context)
+
+
+@login_required
+def clock_in_shift(request, shift_id):
+    """Clock in to a scheduled shift."""
+    shift = get_object_or_404(Shift, id=shift_id)
+    
+    # SECURITY: Verify logged-in user is assigned to this shift
+    if shift.caregiver != request.user:
+        raise PermissionDenied("You cannot clock into a shift assigned to another caregiver.")
+    
+    # Check if already clocked in somewhere
+    active_visit = Visit.objects.filter(caregiver=request.user, clock_out__isnull=True).first()
+    if active_visit:
+        messages.warning(request, "You are already clocked into another visit. Please clock out first.")
+        return redirect('clock_out', visit_id=active_visit.id)
+    
+    # Create visit linked to shift
+    visit = Visit.objects.create(
+        shift=shift,
+        caregiver=request.user,
+        client=shift.client,
+        clock_in=timezone.now(),
+    )
+    
+    messages.success(request, f"Clocked in to {shift.client} at {visit.clock_in.strftime('%I:%M %p')}")
+    return redirect('clock_out', visit_id=visit.id)
 
 
 def client_profile(request, client_id):
