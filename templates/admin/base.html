@@ -26,8 +26,6 @@
 {{ block.super }}
 <script>
 (function() {
-  console.log('Admin icons script running...');
-
   const iconMap = {
     'care team': 'bi-people-fill',
     'groups': 'bi-people',
@@ -39,15 +37,10 @@
     'visits': 'bi-house-door'
   };
 
-  const links = document.querySelectorAll('th a');
-  console.log('Found ' + links.length + ' links in th elements');
-
-  links.forEach(function(link) {
+  document.querySelectorAll('th a').forEach(function(link) {
     const text = link.textContent.trim().toLowerCase();
-    console.log('Link text: "' + text + '"');
     for (const [model, iconClass] of Object.entries(iconMap)) {
       if (text === model) {
-        console.log('Match! Adding icon for: ' + model);
         const icon = document.createElement('i');
         icon.className = 'bi ' + iconClass + ' admin-icon';
         link.insertBefore(icon, link.firstChild);
