@@ -1,29 +1,30 @@
-<!doctype html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Portal Login</title>
-</head>
-<body style="font-family: Arial; padding: 20px;">
-  <h2>Portal Login</h2>
+{% extends "base.html" %}
+
+{% block title %}Log In{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h2>Welcome Back 👋</h2>
+  <p style="color:#7f8c8d; margin-bottom: 20px;">Please log in to continue.</p>
 
   {% if error %}
-    <p style="color:red;">{{ error }}</p>
+  <p style="color: #e74c3c; background: #fadbd8; padding: 10px; border-radius: 6px;">{{ error }}</p>
   {% endif %}
 
   <form method="POST">
     {% csrf_token %}
-    <div style="margin-bottom:10px;">
-      <label>Username</label><br>
-      <input name="username" style="width:100%; padding:10px;">
-    </div>
 
-    <div style="margin-bottom:10px;">
-      <label>Password</label><br>
-      <input type="password" name="password" style="width:100%; padding:10px;">
-    </div>
+    <label>Username</label>
+    <input name="username" type="text" required>
 
-    <button type="submit" style="padding:10px 15px;">Log in</button>
+    <label>Password</label>
+    <input type="password" name="password" required>
+
+    <button type="submit" class="btn btn-primary">Log In</button>
   </form>
-</body>
-</html>
+</div>
+
+<div class="text-center mt-2">
+  <p class="text-small">Don't have an account? <a href="{% url 'signup' %}">Sign Up</a></p>
+</div>
+{% endblock %}

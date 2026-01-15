@@ -1,21 +1,30 @@
-<!doctype html>
-<html>
+{% extends "base.html" %}
 
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Portal Signup</title>
-</head>
+{% block title %}Sign Up{% endblock %}
 
-<body style="font-family: Arial; padding: 20px;">
+{% block content %}
+<div class="card">
     <h2>Create Account</h2>
 
     <form method="POST">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" style="padding:10px 15px;">Sign Up</button>
+
+        {% for field in form %}
+        <label>{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}
+        <small style="color:#95a5a6; display:block; margin-top:4px;">{{ field.help_text }}</small>
+        {% endif %}
+        {% for error in field.errors %}
+        <small style="color: #e74c3c; display:block;">{{ error }}</small>
+        {% endfor %}
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary">Sign Up</button>
     </form>
+</div>
 
-    <p>Already have an account? <a href="{% url 'login' %}">Log in here</a>.</p>
-</body>
-
-</html>
+<div class="text-center mt-2">
+    <p class="text-small">Already have an account? <a href="{% url 'login' %}">Log In</a></p>
+</div>
+{% endblock %}

@@ -1,11 +1,23 @@
+{% load static %}
 <!DOCTYPE html>
-<html> lang="en">
-<head>
-	<meta charset="UTF-8"
-	<title>Bay Area Elite HomeCare</title>
-</head>
-<body>
-        {% block content %}{% endblock %}
-</body>
-</html>
+<html>
 
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>{% block title %}CORECare Access{% endblock %}</title>
+	<link rel="stylesheet" href="{% static 'portal/styles.css' %}">
+</head>
+
+<body>
+
+	<!-- Simple Mobile Header -->
+	<div style="margin-bottom: 20px; text-align: center;">
+		<h3 style="margin:0; color:#bdc3c7;">CORECare Access</h3>
+	</div>
+
+	{% block content %}{% endblock %}
+
+</body>
+
+</html>

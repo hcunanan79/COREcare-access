@@ -1,0 +1,90 @@
+/* Mobile-First Design (Matching Caregiver Portal) */
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background: #f5f7fa;
+    color: #333;
+    margin: 0;
+}
+
+h1,
+h2,
+h3 {
+    margin-top: 0;
+    color: #2c3e50;
+}
+
+/* Card Component */
+.card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+/* Form Elements */
+label {
+    display: block;
+    font-weight: bold;
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+select,
+textarea {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-sizing: border-box;
+    /* Ensures padding doesn't break width */
+}
+
+/* Buttons */
+.btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    margin-top: 20px;
+    box-sizing: border-box;
+}
+
+.btn-primary {
+    background: #2ecc71;
+    /* Green */
+    color: white;
+}
+
+.btn-secondary {
+    background: #ecf0f1;
+    color: #7f8c8d;
+}
+
+/* Utilities */
+.text-center {
+    text-align: center;
+}
+
+.mt-2 {
+    margin-top: 10px;
+}
+
+.text-small {
+    font-size: 14px;
+}
+
+a {
+    color: #2980b9;
+}
