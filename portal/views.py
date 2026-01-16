@@ -17,9 +17,19 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user:
             login(request, user)
-            # Redirect to 'next' if it exists, otherwise dashboard
-            next_url = request.GET.get("next") or "/portal/dashboard/"
-            return redirect(next_url)
+            
+            # Smart Redirect Logic
+            next_url = request.GET.get("next")
+            if next_url:
+                return redirect(next_url)
+            
+            # Check if user is a Family Member
+            from clients.models import ClientFamilyMember
+            if ClientFamilyMember.objects.filter(user=user).exists():
+                return redirect("family_home")
+                
+            # Default to Employee/Caregiver Dashboard
+            return redirect("employee_dashboard")
 
         return render(
             request,
