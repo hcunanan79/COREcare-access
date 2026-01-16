@@ -76,12 +76,20 @@ def clock_in_shift(request, shift_id):
         messages.warning(request, "You are already clocked into another visit. Please clock out first.")
         return redirect('clock_out', visit_id=active_visit.id)
     
+    # Issue #15: Capture geolocation if provided (optional, won't block clock-in)
+    clock_in_lat = request.POST.get('clock_in_latitude')
+    clock_in_lng = request.POST.get('clock_in_longitude')
+    clock_in_acc = request.POST.get('clock_in_accuracy')
+    
     # Create visit linked to shift
     visit = Visit.objects.create(
         shift=shift,
         caregiver=request.user,
         client=shift.client,
         clock_in=timezone.now(),
+        clock_in_latitude=Decimal(clock_in_lat) if clock_in_lat else None,
+        clock_in_longitude=Decimal(clock_in_lng) if clock_in_lng else None,
+        clock_in_accuracy=Decimal(clock_in_acc) if clock_in_acc else None,
     )
     
     messages.success(request, f"Clocked in to {shift.client} at {visit.clock_in.strftime('%I:%M %p')}")
@@ -152,6 +160,18 @@ def clock_out(request, visit_id):
                 visit.mileage = Decimal(mileage)
             except Exception:
                 pass
+
+        # Issue #15: Capture geolocation if provided (optional, won't block clock-out)
+        clock_out_lat = request.POST.get('clock_out_latitude')
+        clock_out_lng = request.POST.get('clock_out_longitude')
+        clock_out_acc = request.POST.get('clock_out_accuracy')
+        
+        if clock_out_lat:
+            visit.clock_out_latitude = Decimal(clock_out_lat)
+        if clock_out_lng:
+            visit.clock_out_longitude = Decimal(clock_out_lng)
+        if clock_out_acc:
+            visit.clock_out_accuracy = Decimal(clock_out_acc)
 
         # Clock out
         visit.clock_out = timezone.now()

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Shift Details - CORECare</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -67,7 +68,7 @@
       padding: 16px;
       border-radius: 0 8px 8px 0;
       margin-bottom: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
     .client-name {
@@ -81,7 +82,7 @@
       border-radius: 8px;
       padding: 16px;
       margin-bottom: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
     .section-header {
@@ -212,7 +213,7 @@
       border-radius: 8px;
       padding: 16px;
       margin-bottom: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
       display: none;
     }
 
@@ -284,6 +285,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <div class="header">
@@ -310,14 +312,14 @@
       </div>
 
       {% if comments %}
-        {% for comment in comments %}
-          <div class="comment-box">
-            <div class="comment-text">{{ comment.text }}</div>
-            <div class="comment-meta">{{ comment.author }} • {{ comment.created_at|date:"M j, Y g:i A" }}</div>
-          </div>
-        {% endfor %}
+      {% for comment in comments %}
+      <div class="comment-box">
+        <div class="comment-text">{{ comment.text }}</div>
+        <div class="comment-meta">{{ comment.author }} • {{ comment.created_at|date:"M j, Y g:i A" }}</div>
+      </div>
+      {% endfor %}
       {% else %}
-        <div class="empty-comments">No comments yet</div>
+      <div class="empty-comments">No comments yet</div>
       {% endif %}
     </div>
 
@@ -336,9 +338,9 @@
         <div class="shift-row">
           <span class="shift-label">Clock Out:</span>
           {% if visit.clock_out %}
-            <span class="shift-value">{{ visit.clock_out|date:"g:i A" }}</span>
+          <span class="shift-value">{{ visit.clock_out|date:"g:i A" }}</span>
           {% else %}
-            <span class="shift-value pending">-- (pending)</span>
+          <span class="shift-value pending">-- (pending)</span>
           {% endif %}
         </div>
         {% if visit.duration_hours %}
@@ -369,7 +371,8 @@
       <form method="post" action="{% url 'add_mileage' visit.id %}">
         {% csrf_token %}
         <label for="mileage">Enter Total Miles</label>
-        <input type="number" id="mileage" name="mileage" placeholder="e.g., 12.5" step="0.1" min="0" value="{{ visit.mileage|default:'' }}">
+        <input type="number" id="mileage" name="mileage" placeholder="e.g., 12.5" step="0.1" min="0"
+          value="{{ visit.mileage|default:'' }}">
         <button type="submit" class="submit-btn">Save Mileage</button>
       </form>
     </div>
@@ -385,25 +388,31 @@
     </div>
 
     {% if not visit.clock_out %}
-      <!-- Action Buttons -->
-      <div class="action-buttons">
-        <button class="action-btn" onclick="toggleForm('mileage-form')">ADD MILEAGE</button>
-        <button class="action-btn" onclick="toggleForm('comment-form')">ADD COMMENT</button>
-      </div>
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button class="action-btn" onclick="toggleForm('mileage-form')">ADD MILEAGE</button>
+      <button class="action-btn" onclick="toggleForm('comment-form')">ADD COMMENT</button>
+    </div>
 
-      <!-- Clock Out Form -->
-      <form method="post">
-        {% csrf_token %}
-        {% if not visit.mileage %}
-          <input type="hidden" name="mileage" id="hidden-mileage" value="">
-        {% endif %}
-        <button type="submit" class="clock-out-btn">CLOCK OUT</button>
-      </form>
+    <!-- Clock Out Form -->
+    <form method="post" id="clockOutForm">
+      {% csrf_token %}
+      {% if not visit.mileage %}
+      <input type="hidden" name="mileage" id="hidden-mileage" value="">
+      {% endif %}
+
+      <!-- Issue #15: Geolocation fields -->
+      <input type="hidden" name="clock_out_latitude" id="clock_out_latitude">
+      <input type="hidden" name="clock_out_longitude" id="clock_out_longitude">
+      <input type="hidden" name="clock_out_accuracy" id="clock_out_accuracy">
+
+      <button type="button" class="clock-out-btn" onclick="handleClockOut()">CLOCK OUT</button>
+    </form>
     {% else %}
-      <div class="already-clocked-out">
-        ✓ Shift completed at {{ visit.clock_out|date:"g:i A" }}
-      </div>
-      <a href="{% url 'weekly_summary' %}" class="back-link">← Back to Weekly Summary</a>
+    <div class="already-clocked-out">
+      ✓ Shift completed at {{ visit.clock_out|date:"g:i A" }}
+    </div>
+    <a href="{% url 'weekly_summary' %}" class="back-link">← Back to Weekly Summary</a>
     {% endif %}
 
   </div>
@@ -426,7 +435,46 @@
         if (input) input.focus();
       }
     }
+
+    // Issue #15: Geolocation capture for clock-out
+    function handleClockOut() {
+      const btn = document.querySelector('.clock-out-btn');
+      const originalText = btn.textContent;
+      btn.textContent = 'Getting Location...';
+      btn.disabled = true;
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function (position) {
+            // Success
+            document.getElementById('clock_out_latitude').value = position.coords.latitude;
+            document.getElementById('clock_out_longitude').value = position.coords.longitude;
+            document.getElementById('clock_out_accuracy').value = position.coords.accuracy;
+            submitForm();
+          },
+          function (error) {
+            // Error handling - proceed anyway
+            console.log('Geolocation failed:', error.message);
+            submitForm();
+          },
+          {
+            timeout: 5000,
+            enableHighAccuracy: true,
+            maximumAge: 0
+          }
+        );
+      } else {
+        // Not supported
+        submitForm();
+      }
+
+      function submitForm() {
+        btn.textContent = 'Clocking Out...';
+        document.getElementById('clockOutForm').submit();
+      }
+    }
   </script>
 
 </body>
+
 </html>
