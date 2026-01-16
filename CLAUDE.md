@@ -52,3 +52,25 @@ The following MCP (Model Context Protocol) servers are configured and available 
 ```
 
 All AI models should leverage this MCP server when working on deployment-related tasks, debugging production issues, or verifying that code changes have been successfully deployed.
+
+### GitHub MCP Server
+- **URL**: `https://api.githubcopilot.com/mcp`
+- **Status**: ✓ Connected
+- **Use Cases**:
+  - Create, read, and manage GitHub issues
+  - Manage pull requests (create, review, merge)
+  - Search repositories and code
+  - Manage GitHub projects and milestones
+  - View repository information and commits
+  - Manage issue labels, assignments, and projects
+  - Access repository workflows and actions
+
+**Example Usage**:
+```bash
+# Search for issues across the repository
+# Create or update issues programmatically
+# Fetch PR details and manage review workflows
+# Query commit history and branch information
+```
+
+All AI models should leverage this MCP server when working with GitHub issues, pull requests, project management, and code search tasks. This enables automated issue creation, PR reviews, and project tracking directly from AI agents.
