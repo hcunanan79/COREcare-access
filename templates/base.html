@@ -1,12 +1,12 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>{% block title %}CORECare Access{% endblock %}</title>
-	<link rel="stylesheet" href="{% static 'portal/styles.css' %}">
+	<link rel="stylesheet" href="{% static 'css/portal.css' %}">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 	<!-- Issue #16: PWA Manifest and Service Worker -->
@@ -25,122 +25,28 @@
 			});
 		}
 	</script>
-
-	<!-- Issue #29: Global Header Styles -->
-	<style>
-		.global-header {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			padding: 12px 16px;
-			background: #2c3e50;
-			color: white;
-			position: sticky;
-			top: 0;
-			z-index: 1000;
-		}
-
-		.global-header__logo {
-			display: flex;
-			align-items: center;
-			gap: 10px;
-			text-decoration: none;
-			color: white;
-		}
-
-		.global-header__logo img {
-			width: 36px;
-			height: 36px;
-			border-radius: 6px;
-		}
-
-		.global-header__logo span {
-			font-weight: 600;
-			font-size: 16px;
-		}
-
-		.global-header__user {
-			display: flex;
-			align-items: center;
-			gap: 12px;
-		}
-
-		.global-header__user-badge {
-			display: flex;
-			align-items: center;
-			gap: 8px;
-			background: rgba(255, 255, 255, 0.1);
-			padding: 6px 12px;
-			border-radius: 20px;
-		}
-
-		.global-header__user-badge i {
-			color: #2ecc71;
-		}
-
-		.global-header__logout {
-			background: transparent;
-			border: 1px solid rgba(255, 255, 255, 0.3);
-			color: white;
-			padding: 6px 12px;
-			border-radius: 4px;
-			cursor: pointer;
-			text-decoration: none;
-			font-size: 14px;
-			transition: background 0.2s;
-		}
-
-		.global-header__logout:hover {
-			background: rgba(255, 255, 255, 0.1);
-		}
-
-		.global-header__login {
-			background: #2ecc71;
-			border: none;
-			color: white;
-			padding: 8px 16px;
-			border-radius: 4px;
-			text-decoration: none;
-			font-weight: 600;
-			font-size: 14px;
-		}
-
-		@media (max-width: 480px) {
-			.global-header__logo span {
-				display: none;
-			}
-
-			.global-header__user-badge span {
-				display: none;
-			}
-		}
-	</style>
 </head>
 
 <body>
-
-	<!-- Issue #29: Global Header with User Context -->
-	<header class="global-header">
-		<a href="/" class="global-header__logo">
-			<img src="{% static 'portal/logo.png' %}" alt="Logo">
-			<span>CORECare Access</span>
+	<!-- Global Header -->
+	<header class="header">
+		<a href="/" class="header-brand">
+			<i class="fas fa-heart-pulse"></i>
+			CORECare Access
 		</a>
 
-		<div class="global-header__user">
+		<nav class="header-nav">
 			{% if user.is_authenticated %}
-			<div class="global-header__user-badge">
-				<i class="fas fa-user-circle"></i>
-				<span>{{ user.get_full_name|default:user.username }}</span>
-			</div>
-			<a href="{% url 'logout' %}" class="global-header__logout">
+			<span class="header-user">{{ user.get_full_name|default:user.username }}</span>
+			<a href="{% url 'logout' %}" class="logout">
 				<i class="fas fa-sign-out-alt"></i> Logout
 			</a>
 			{% else %}
-			<a href="{% url 'login' %}" class="global-header__login">
+			<a href="{% url 'login' %}" class="btn btn-primary" style="padding: 8px 16px;">
 				<i class="fas fa-sign-in-alt"></i> Log In
 			</a>
 			{% endif %}
-		</div>
+		</nav>
 	</header>
 
 	{% block content %}{% endblock %}
