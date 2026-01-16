@@ -13,7 +13,7 @@ from django.utils import timezone
 from django_ratelimit.decorators import ratelimit
 
 from clients.models import Client
-from caregiver_portal.models import Visit, VisitComment, ClockEvent
+from caregiver_portal.models import Visit, VisitComment, ClockEvent, WeeklySummary
 from shifts.models import Shift
 
 
@@ -42,13 +42,23 @@ def employee_dashboard(request):
         start_time__date__lte=today + timedelta(days=7)
     ).select_related('client').order_by('start_time')[:10]
     
-    # Weekly hours summary
+    # Weekly hours summary (Issue #18: Use pre-computed summary)
     start_of_week = today - timedelta(days=today.weekday())
-    weekly_hours = Visit.objects.filter(
-        caregiver=caregiver,
-        clock_in__date__gte=start_of_week,
-        duration_hours__isnull=False
-    ).aggregate(total=Sum('duration_hours'))['total'] or 0
+    
+    try:
+        summary = WeeklySummary.objects.get(caregiver=caregiver, week_start=start_of_week)
+        weekly_hours = summary.total_hours
+    except WeeklySummary.DoesNotExist:
+        # Fallback: calculate live and trigger update for next time
+        visits = Visit.objects.filter(
+            caregiver=caregiver,
+            clock_in__date__gte=start_of_week,
+            duration_hours__isnull=False
+        )
+        weekly_hours = visits.aggregate(total=Sum('duration_hours'))['total'] or 0
+        # Trigger creation of summary record
+        from .utils import update_weekly_summary
+        update_weekly_summary(caregiver, today)
     
     context = {
         'todays_shifts': todays_shifts,
@@ -314,23 +324,45 @@ def admin_payroll(request):
     ).order_by("username")
 
     rows = []
-    for cg in caregivers:
-        total = (
-            Visit.objects.filter(
-                caregiver=cg,
-                clock_in__date__range=[start_date, end_date],
-                duration_hours__isnull=False,
-            )
-            .aggregate(total=Sum("duration_hours"))["total"]
-            or 0
-        )
+    
+    # optimization: If requesting a standard week, usage pre-computed summaries
+    # Check if start is Monday (0) and end is Sunday (6) and diff is 6 days
+    is_standard_week = (start_date.weekday() == 0 and 
+                       (end_date - start_date).days == 6)
 
-        rows.append(
-            {
+    if is_standard_week:
+        # Bulk fetch all summaries for this week
+        summaries = {
+            ws.caregiver_id: ws.total_hours 
+            for ws in WeeklySummary.objects.filter(week_start=start_date)
+        }
+        
+        for cg in caregivers:
+            total = summaries.get(cg.id, 0)
+            rows.append({
                 "caregiver": cg,
                 "total_hours": round(float(total), 2),
-            }
-        )
+            })
+            
+    else:
+        # Fallback for custom date ranges
+        for cg in caregivers:
+            total = (
+                Visit.objects.filter(
+                    caregiver=cg,
+                    clock_in__date__range=[start_date, end_date],
+                    duration_hours__isnull=False,
+                )
+                .aggregate(total=Sum("duration_hours"))["total"]
+                or 0
+            )
+
+            rows.append(
+                {
+                    "caregiver": cg,
+                    "total_hours": round(float(total), 2),
+                }
+            )
 
     return render(
         request,

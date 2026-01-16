@@ -253,3 +253,29 @@ class ClockEvent(models.Model):
 
     def __str__(self):
         return f"{self.get_event_type_display()} for {self.visit} at {self.timestamp}"
+
+
+class WeeklySummary(models.Model):
+    """
+    Issue #18: Pre-computed summary of caregiver hours per week.
+    Optimizes payroll reporting performance by avoiding expensive on-the-fly aggregation.
+    """
+    caregiver = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='weekly_summaries'
+    )
+    week_start = models.DateField(help_text="The Monday that starts the week")
+    total_hours = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    total_visits = models.IntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-week_start', 'caregiver']
+        unique_together = ['caregiver', 'week_start']
+        indexes = [
+            models.Index(fields=['week_start', 'caregiver']),
+        ]
+
+    def __str__(self):
+        return f"{self.caregiver} - {self.week_start}: {self.total_hours} hrs"
