@@ -13,7 +13,7 @@ from django.utils import timezone
 from django_ratelimit.decorators import ratelimit
 
 from clients.models import Client
-from caregiver_portal.models import Visit, VisitComment
+from caregiver_portal.models import Visit, VisitComment, ClockEvent
 from shifts.models import Shift
 
 
@@ -92,6 +92,17 @@ def clock_in_shift(request, shift_id):
         clock_in_accuracy=Decimal(clock_in_acc) if clock_in_acc else None,
     )
     
+    # Issue #14: Create immutable ClockEvent record
+    ClockEvent.objects.create(
+        visit=visit,
+        event_type='clock_in',
+        recorded_time=visit.clock_in,
+        latitude=visit.clock_in_latitude,
+        longitude=visit.clock_in_longitude,
+        accuracy=visit.clock_in_accuracy,
+        performed_by=request.user
+    )
+    
     messages.success(request, f"Clocked in to {shift.client} at {visit.clock_in.strftime('%I:%M %p')}")
     return redirect('clock_out', visit_id=visit.id)
 
@@ -133,6 +144,14 @@ def clock_page(request):
             caregiver=request.user,
             clock_in=timezone.now(),
             notes=notes,
+        )
+
+        # Issue #14: Create immutable ClockEvent record
+        ClockEvent.objects.create(
+            visit=visit,
+            event_type='clock_in',
+            recorded_time=visit.clock_in,
+            performed_by=request.user
         )
 
         return redirect("clock_out", visit_id=visit.id)
@@ -182,6 +201,18 @@ def clock_out(request, visit_id):
             visit.duration_hours = Decimal(str(hours))
 
         visit.save()
+
+        # Issue #14: Create immutable ClockEvent record
+        ClockEvent.objects.create(
+            visit=visit,
+            event_type='clock_out',
+            recorded_time=visit.clock_out,
+            latitude=visit.clock_out_latitude,
+            longitude=visit.clock_out_longitude,
+            accuracy=visit.clock_out_accuracy,
+            performed_by=request.user
+        )
+
         return redirect("weekly_summary")
 
     return render(

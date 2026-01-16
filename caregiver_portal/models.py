@@ -208,3 +208,48 @@ class AuditLog(models.Model):
     
     def __str__(self):
         return f"{self.user} - {self.action} at {self.timestamp}"
+
+
+class ClockEvent(models.Model):
+    """
+    Issue #14: Immutable record of all clock events for dispute resolution.
+    Captures the 'what happened' vs 'what should have happened'.
+    """
+    EVENT_TYPES = [
+        ('clock_in', 'Clock In'),
+        ('clock_out', 'Clock Out'),
+        ('auto_clock_out', 'System Auto Clock-Out'),
+        ('manual_correction', 'Manual Correction'),
+    ]
+
+    visit = models.ForeignKey(Visit, on_delete=models.CASCADE, related_name='clock_events')
+    event_type = models.CharField(max_length=20, choices=EVENT_TYPES)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    # Snapshot of data at time of event
+    recorded_time = models.DateTimeField(help_text="The actual time recorded")
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    accuracy = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    
+    # Dispute / Correction tracking
+    is_disputed = models.BooleanField(default=False)
+    dispute_reason = models.TextField(blank=True, null=True)
+    resolution_notes = models.TextField(blank=True, null=True)
+    
+    # Who performed the action (could be admin correcting a caregiver's mistake)
+    performed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='performed_clock_events'
+    )
+
+    class Meta:
+        ordering = ['timestamp']
+        indexes = [
+            models.Index(fields=['visit', 'event_type']),
+        ]
+
+    def __str__(self):
+        return f"{self.get_event_type_display()} for {self.visit} at {self.timestamp}"
