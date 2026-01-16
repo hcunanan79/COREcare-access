@@ -287,6 +287,9 @@
 </head>
 
 <body>
+  <div id="offline-banner"
+    style="display:none; background:#34495e; color:white; padding:10px; text-align:center; position:sticky; top:0; z-index:1001; font-weight:600;">
+    📡 You are currently offline. Actions queued.</div>
 
   <div class="header">
     <div class="header-left">
@@ -436,10 +439,101 @@
       }
     }
 
+    // Issue #16: Offline Handling
+    function updateOnlineStatus() {
+      const banner = document.getElementById('offline-banner');
+      if (banner) {
+        if (navigator.onLine) {
+          banner.style.display = 'none';
+          syncPendingClockOut();
+        } else {
+          banner.style.display = 'block';
+        }
+      }
+    }
+
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    setTimeout(updateOnlineStatus, 1000);
+
+    function syncPendingClockOut() {
+      const pending = JSON.parse(localStorage.getItem('pendingClockOut') || 'null');
+      if (pending) {
+        const banner = document.getElementById('offline-banner');
+        banner.textContent = "🔄 Syncing clock-out...";
+        banner.style.display = 'block';
+
+        const form = document.querySelector('#clockOutForm') || document.createElement('form');
+        const actionUrl = pending.url || form.action;
+
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+        if (pending.lat) formData.append('clock_out_latitude', pending.lat);
+        if (pending.lng) formData.append('clock_out_longitude', pending.lng);
+        if (pending.acc) formData.append('clock_out_accuracy', pending.acc);
+        if (pending.mileage) formData.append('mileage', pending.mileage);
+
+        fetch(actionUrl, {
+          method: 'POST',
+          body: formData,
+          headers: { 'X-CSRFToken': getCookie('csrftoken') }
+        }).then(response => {
+          if (response.ok || response.redirected) {
+            localStorage.removeItem('pendingClockOut');
+            banner.textContent = "✅ Sync complete!";
+            setTimeout(() => {
+              window.location.href = "{% url 'weekly_summary' %}";
+            }, 1000);
+          }
+        });
+      }
+    }
+
     // Issue #15: Geolocation capture for clock-out
     function handleClockOut() {
       const btn = document.querySelector('.clock-out-btn');
       const originalText = btn.textContent;
+
+      // Check offline first (Issue #16)
+      if (!navigator.onLine) {
+        btn.textContent = 'Saving locally...';
+        // Get form values
+        const mileage = document.getElementById('mileage')?.value || document.getElementById('hidden-mileage')?.value;
+        const form = document.getElementById('clockOutForm');
+
+        const action = {
+          url: form.action,
+          mileage: mileage,
+          time: new Date().toISOString()
+        };
+
+        // We still try to get location, but if it fails we just save
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            function (pos) {
+              action.lat = pos.coords.latitude;
+              action.lng = pos.coords.longitude;
+              action.acc = pos.coords.accuracy;
+              saveAndNotify(action);
+            },
+            function (err) {
+              saveAndNotify(action);
+            },
+            { timeout: 3000 }
+          );
+        } else {
+          saveAndNotify(action);
+        }
+
+        function saveAndNotify(data) {
+          localStorage.setItem('pendingClockOut', JSON.stringify(data));
+          btn.disabled = true;
+          btn.textContent = 'Saved Offline';
+          alert("You are offline. Clock-out saved and will submit automatically when you reconnect.");
+        }
+        return;
+      }
+
       btn.textContent = 'Getting Location...';
       btn.disabled = true;
 
@@ -472,6 +566,21 @@
         btn.textContent = 'Clocking Out...';
         document.getElementById('clockOutForm').submit();
       }
+    }
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
     }
   </script>
 

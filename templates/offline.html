@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="text-align: center; padding: 40px 20px;">
+    <div style="font-size: 48px; margin-bottom: 20px;">📡</div>
+    <h2 style="color: #417690;">You are offline</h2>
+    <p style="color: #666; max-width: 400px; margin: 0 auto 24px auto;">
+        We can't connect to the server right now.
+        Some features like clocking in/out might be unavailable or queued.
+    </p>
+    <button onclick="window.location.reload()" style="
+      background: #417690; color: white; border: none; padding: 12px 24px; 
+      border-radius: 6px; font-weight: 600; cursor: pointer;">
+        Try Reconnecting
+    </button>
+</div>
+{% endblock %}

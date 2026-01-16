@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
+from django.views.generic import TemplateView
 
 admin.site.site_header = "CORECare Access"
 admin.site.site_title = "CORECare Access"
@@ -13,6 +14,9 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("schedule/", include("clients.urls")),
     path("portal/", include("portal.urls")),
+    
+    # Issue #16: Service Worker for PWA (must be at root scope)
+    path('sw.js', TemplateView.as_view(template_name='sw.js', content_type='application/javascript'), name='sw'),
 ]
 
 from django.conf import settings

@@ -56,3 +56,8 @@ def employee_dashboard(request):
     shifts = Shift.objects.filter(caregiver=request.user).order_by('start_time')
     today = timezone.now().date()
     return render(request, "portal/employee_dashboard.html", {"shifts": shifts, "today": today})
+
+
+def offline_view(request):
+    """Fallback page for offline PWA requests"""
+    return render(request, "offline.html")

@@ -140,6 +140,24 @@
       box-shadow: 0 2px 8px rgba(230, 126, 34, 0.3);
     }
 
+    /* Issue #16: Offline Banner */
+    #offline-banner {
+      display: none;
+      background: #34495e;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 1001;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    #offline-banner.visible {
+      display: block;
+    }
+
     .active-banner h2 {
       margin: 0 0 8px 0;
       font-size: 18px;
@@ -337,6 +355,7 @@
 </head>
 
 <body>
+  <div id="offline-banner">📡 You are currently offline. Actions will be queued.</div>
 
   <div class="header">
     <h1>COREcare Access</h1>
@@ -491,7 +510,81 @@
       }
     }
 
+    // Issue #16: Offline Handling
+    function updateOnlineStatus() {
+      const banner = document.getElementById('offline-banner');
+      if (navigator.onLine) {
+        banner.classList.remove('visible');
+        syncPendingActions();
+      } else {
+        banner.classList.add('visible');
+      }
+    }
+
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+
+    // Call once on load - wait small delay
+    setTimeout(updateOnlineStatus, 1000);
+
+    function syncPendingActions() {
+      const pending = JSON.parse(localStorage.getItem('pendingClockIn') || 'null');
+      if (pending) {
+        console.log('Syncing pending clock-in...', pending);
+        const banner = document.getElementById('offline-banner');
+        banner.textContent = "🔄 Syncing blocked actions...";
+        banner.classList.add('visible');
+
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+        if (pending.lat) formData.append('clock_in_latitude', pending.lat);
+        if (pending.lng) formData.append('clock_in_longitude', pending.lng);
+        if (pending.acc) formData.append('clock_in_accuracy', pending.acc);
+
+        fetch(pending.url, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+          }
+        })
+          .then(response => {
+            if (response.ok || response.redirected) {
+              localStorage.removeItem('pendingClockIn');
+              banner.textContent = "✅ Sync complete!";
+              setTimeout(() => {
+                banner.classList.remove('visible');
+                banner.textContent = "📡 You are currently offline. Actions will be queued."; // reset text
+                window.location.reload();
+              }, 1000);
+            } else {
+              console.error('Sync failed', response);
+              banner.textContent = "❌ Sync failed. Retrying later.";
+            }
+          })
+          .catch(err => {
+            console.error('Sync error', err);
+          });
+      }
+    }
+
     function submitClockInWithLocation(lat, lng, accuracy) {
+      // Check online status first
+      if (!navigator.onLine) {
+        // Queue it
+        const action = {
+          url: pendingClockInUrl,
+          lat: lat,
+          lng: lng,
+          acc: accuracy,
+          time: new Date().toISOString()
+        };
+        localStorage.setItem('pendingClockIn', JSON.stringify(action));
+        closeConfirmModal();
+        alert("You are offline. Clock-in saved and will submit automatically when you reconnect.");
+        return;
+      }
+
       // Create a form to POST the clock-in with geolocation data
       const form = document.createElement('form');
       form.method = 'POST';
