@@ -4,7 +4,9 @@ This document provides an overview of the system architecture for new engineers.
 
 ## System Overview
 
-COREcare Access is a Django-based web application for managing home care operations, including client management, caregiver scheduling, time tracking, and credential management.
+COREcare Access is a Django-based web application for managing home care operations, including client management, caregiver scheduling, time tracking, credential management, **and family communication**.
+
+It operates as a **Progressive Web App (PWA)**, providing offline capabilities for caregivers in the field.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -19,6 +21,13 @@ COREcare Access is a Django-based web application for managing home care operati
 │                       │Static Files │                           │
 │                       └─────────────┘                           │
 └─────────────────────────────────────────────────────────────────┘
+                                ▲
+                                │
+                        ┌───────┴───────┐
+                        │  Client PWA   │
+                        │ Service Worker│
+                        │ Offline Sync  │
+                        └───────────────┘
 ```
 
 ## Technology Stack
@@ -30,7 +39,8 @@ COREcare Access is a Django-based web application for managing home care operati
 | Web Server | Gunicorn | WSGI HTTP server |
 | Static Files | WhiteNoise | Static file serving |
 | Hosting | Render | Cloud platform |
-| Geolocation | GeoPy | Address/location services |
+| **PWA** | Service Worker | Offline support & Caching |
+| **Geolocation** | HTML5 Geolocation | GPS Tracking at Clock-in/out |
 
 ## Django Apps
 
@@ -47,8 +57,8 @@ The application is divided into 10 Django apps, each handling a specific domain:
 
 | App | Purpose | Key Models |
 |-----|---------|------------|
-| **clients** | Client profiles & information | Client, CareTeam |
-| **caregiver_portal** | Caregiver interface | Visit |
+| **clients** | Client profiles & family access | Client, ClientFamilyMember, ClientMessage |
+| **caregiver_portal** | Caregiver interface | Visit, ClockEvent, WeeklySummary |
 | **shifts** | Shift scheduling | Shift |
 | **timeclock** | Clock in/out tracking | TimeEntry |
 | **employees** | Employee profiles | Employee |
@@ -62,8 +72,9 @@ The application is divided into 10 Django apps, each handling a specific domain:
 ### User Types
 
 1. **Administrators** - Access Django admin panel, manage all data
-2. **Caregivers** - Access caregiver portal, clock in/out, view schedules
+2. **Caregivers** - Access caregiver portal, clock in/out (online/offline), view schedules
 3. **Employees** - Access employee dashboard after signup
+4. **Family Members** - Access Family Portal to view loved one's schedule
 
 ### Authentication Flow
 
@@ -80,19 +91,26 @@ The application is divided into 10 Django apps, each handling a specific domain:
                  └───────────┘
 ```
 
-### Caregiver Time Tracking Flow
+### Caregiver Time Tracking Flow (with Offline Sync)
 
 ```
 ┌─────────┐     ┌──────────┐     ┌──────────┐     ┌─────────────┐
-│Clock In │────▶│  Select  │────▶│  Record  │────▶│   Visit     │
-│  Page   │     │  Client  │     │  Entry   │     │   Active    │
-└─────────┘     └──────────┘     └──────────┘     └─────────────┘
-                                                         │
-                                                         ▼
-┌─────────────┐     ┌──────────┐     ┌──────────┐     ┌─────────┐
-│   Weekly    │◀────│Calculate │◀────│  Record  │◀────│Clock Out│
-│   Summary   │     │ Duration │     │End Time  │     │  Page   │
-└─────────────┘     └──────────┘     └──────────┘     └─────────┘
+│Clock In │─▶Does│  Verify  │─▶Yes│  Record  │───▶│   Visit     │
+│  Page   │  Con │ Location │     │  Entry   │    │   Active    │
+└─────────┘  Exis│          │     │(AuditLog)│    └─────────────┘
+    │        t?  └──────────┘     └──────────┘           │
+    │ No                                                 ▼
+    ▼                                             ┌─────────────┐
+┌───────────┐                                     │Clock Out    │
+│Queue in   │                                     │(Offline/On) │
+│LocalStore │                                     └──────┬──────┘
+└─────┬─────┘                                            │
+      │ (Connection Restored)                            ▼
+      ▼                                           ┌─────────────┐
+┌───────────┐                                     │   Weekly    │
+│ Auto-Sync │────────────────────────────────────▶│   Summary   │
+│ to Server │                                     │ (Pre-Calc)  │
+└───────────┘                                     └─────────────┘
 ```
 
 ## Database Schema
@@ -103,12 +121,14 @@ The application is divided into 10 Django apps, each handling a specific domain:
 User (Django Auth)
   │
   ├── CareTeam (proxy)
+  ├── FamilyMembers (via Client)
+  │     └── ClientMessages
   │
   └── Visits
         │
-        └── Client
-              │
-              └── Shifts
+        ├── Client
+        ├── ClockEvents (Audit)
+        └── Shifts
 ```
 
 ### Data Flow
@@ -116,35 +136,27 @@ User (Django Auth)
 1. **Clients** are created by administrators
 2. **Shifts** are scheduled for clients with assigned caregivers
 3. **Visits** are recorded when caregivers clock in/out
-4. **Credentials** track caregiver certifications and expiration dates
+4. **ClockEvents** store immutable audit logs + GPS data
+5. **WeeklySummaries** aggregate hours nightly for performance
+6. **Family Members** communicate via ClientMessages
 
 ## Template Structure
 
 ```
 templates/
-├── base.html                 # Main layout (header, nav, footer)
+├── base.html                 # Main layout (includes PWA manifest)
+├── offline.html              # PWA Fallback page
+├── sw.js                     # Service Worker
 ├── admin/                    # Django admin overrides
-│   ├── base.html
-│   ├── base_site.html
-│   └── index.html
 ├── portal/                   # Portal templates
 │   ├── login.html
 │   ├── signup.html
-│   └── employee_dashboard.html
+│   ├── employee_dashboard.html
+│   ├── family_home.html          # New
+│   └── family_client_detail.html # New
 ├── caregiver_portal/         # Caregiver templates
-├── clients/                  # Client templates
-└── timeclock/                # Time tracking templates
-```
-
-### Template Inheritance
-
-```
-base.html
-    │
-    ├── portal/login.html
-    ├── portal/signup.html
-    ├── portal/employee_dashboard.html
-    └── (other page templates)
+│   └── clock_out.html        # Enhanced UI
+└── ...
 ```
 
 ## URL Structure
@@ -153,33 +165,29 @@ base.html
 |---------|-----|-------------|
 | `/admin/` | Django Admin | Administration interface |
 | `/portal/` | portal | Main portal & auth |
-| `/portal/login/` | portal | User login |
-| `/portal/signup/` | portal | New user registration |
 | `/portal/dashboard/` | portal | Employee dashboard |
+| `/portal/family/` | portal | Family Portal root |
+| `/portal/offline/` | portal | PWA Offline fallback |
 | `/caregiver/` | caregiver_portal | Caregiver features |
-| `/clients/` | clients | Client management |
-| `/timeclock/` | timeclock | Time tracking |
+| `/sw.js` | elitecare | Service Worker (App Root) |
 
-## Security
+## Security and Integrity
 
 ### Authentication
-
 - Django's built-in authentication system
 - Session-based authentication
 - Invite code required for new registrations
 
-### Configuration
-
-- `SECRET_KEY` - Environment variable (not in code)
-- `EMPLOYEE_INVITE_CODE` - Configurable via environment
-- CSRF protection enabled
-- Session middleware active
+### Audit & Compliance
+- **ClockEvent**: Immutable log of every clock-in/out attempt.
+- **Geolocation**: GPS coordinates captured on every action.
+- **CSRF**: Protection enabled on all forms.
 
 ### Access Control
-
 - `@login_required` decorator for protected views
-- Admin panel restricted to staff users
-- Invite code gates new registrations
+- **Row-Level Security**:
+    - Caregivers only see *their* shifts.
+    - Family Members only see *their* linked clients.
 
 ## Deployment Architecture
 
@@ -209,22 +217,6 @@ GitHub (main branch)
 └───────────────────┘
 ```
 
-### Development (Local)
-
-```
-Local Machine
-┌───────────────────┐
-│ Django runserver  │
-│   Port 8000       │
-└───────────────────┘
-        │
-        ▼
-┌───────────────────┐
-│   PostgreSQL 16   │
-│   (Local/Docker)  │
-└───────────────────┘
-```
-
 ## Configuration
 
 ### Settings (`elitecare/settings.py`)
@@ -247,22 +239,15 @@ LOGIN_REDIRECT_URL = "/portal/dashboard/"
 EMPLOYEE_INVITE_CODE = os.environ.get("EMPLOYEE_INVITE_CODE", "CORECARE")
 ```
 
-### Static Files
+### Static Files & PWA
 
 - Collected to `staticfiles/` directory
 - Served by WhiteNoise middleware
-- URL prefix: `/static/`
-
-## Development Scripts
-
-| Script | Purpose |
-|--------|---------|
-| `scripts/setup_local_db.sh` | Initialize local PostgreSQL database |
-| `scripts/sync_from_prod.sh` | Sync production data to local |
+- PWA Manifest linked in `base.html`
+- Service Worker served from root `/sw.js`
 
 ## Future Considerations
 
-- **API Layer** - REST API for mobile apps
-- **Real-time Updates** - WebSocket for live notifications
-- **Reporting** - Analytics and reporting dashboard
-- **Mobile App** - Native iOS/Android apps
+- **Native Mobile Integration** - Wrap PWA in Capacitor/Cordova.
+- **Real-time Updates** - WebSocket for live family messages.
+- **Reporting** - Analytics and reporting dashboard (partially solved by WeeklySummary).
