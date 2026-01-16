@@ -461,9 +461,91 @@
     }
 
     function confirmClockIn() {
-      if (pendingClockInUrl) {
-        window.location.href = pendingClockInUrl;
+      if (!pendingClockInUrl) return;
+
+      // Issue #15: Capture geolocation before clock-in
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function (position) {
+            // Success: got location
+            submitClockInWithLocation(
+              position.coords.latitude,
+              position.coords.longitude,
+              position.coords.accuracy
+            );
+          },
+          function (error) {
+            // Failed or denied: proceed without location (privacy-friendly)
+            console.log('Geolocation not available:', error.message);
+            submitClockInWithLocation(null, null, null);
+          },
+          {
+            timeout: 5000,
+            enableHighAccuracy: true,
+            maximumAge: 0
+          }
+        );
+      } else {
+        // Browser doesn't support geolocation
+        submitClockInWithLocation(null, null, null);
       }
+    }
+
+    function submitClockInWithLocation(lat, lng, accuracy) {
+      // Create a form to POST the clock-in with geolocation data
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = pendingClockInUrl;
+
+      // Add CSRF token
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value
+        || getCookie('csrftoken');
+      if (csrfToken) {
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+      }
+
+      // Add geolocation data if available
+      if (lat !== null) {
+        const latInput = document.createElement('input');
+        latInput.type = 'hidden';
+        latInput.name = 'clock_in_latitude';
+        latInput.value = lat;
+        form.appendChild(latInput);
+
+        const lngInput = document.createElement('input');
+        lngInput.type = 'hidden';
+        lngInput.name = 'clock_in_longitude';
+        lngInput.value = lng;
+        form.appendChild(lngInput);
+
+        const accInput = document.createElement('input');
+        accInput.type = 'hidden';
+        accInput.name = 'clock_in_accuracy';
+        accInput.value = accuracy;
+        form.appendChild(accInput);
+      }
+
+      document.body.appendChild(form);
+      form.submit();
+    }
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
     }
 
     // Attach to clock-in buttons

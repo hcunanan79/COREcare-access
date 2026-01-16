@@ -53,6 +53,51 @@ class Visit(models.Model):
 
     notes = models.TextField(blank=True, null=True)
 
+    # Issue #15: Geolocation tracking for fraud prevention
+    clock_in_latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        help_text="Latitude where caregiver clocked in"
+    )
+    clock_in_longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        help_text="Longitude where caregiver clocked in"
+    )
+    clock_in_accuracy = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="GPS accuracy in meters at clock-in"
+    )
+    
+    clock_out_latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        help_text="Latitude where caregiver clocked out"
+    )
+    clock_out_longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        help_text="Longitude where caregiver clocked out"
+    )
+    clock_out_accuracy = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="GPS accuracy in meters at clock-out"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
