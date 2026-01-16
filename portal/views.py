@@ -6,20 +6,22 @@ from .forms import SignUpForm
 
 def logout_view(request):
     logout(request)
-    return redirect("portal_home")
+    return redirect("root")
 
 
 def root_redirect(request):
     """
-    Issue #29: Smart root URL redirect.
-    Routes authenticated users to their appropriate dashboard.
+    Issue #29 + #31: Smart root URL handling.
+    - Authenticated users: route to appropriate dashboard
+    - Anonymous users: render landing page directly (no redirect)
     """
     if request.user.is_authenticated:
         from clients.models import ClientFamilyMember
         if ClientFamilyMember.objects.filter(user=request.user).exists():
             return redirect("family_home")
         return redirect("employee_dashboard")
-    return redirect("portal_home")
+    # Issue #31: Render landing page directly, no redirect
+    return render(request, "portal/landing.html")
 
 
 def login_view(request):
@@ -54,8 +56,11 @@ def login_view(request):
 
 
 def portal_home(request):
-    # Simple landing page (adjust if you already have a template)
-    return render(request, "portal/portal_home.html")
+    """
+    Issue #31: Backward compatibility redirect.
+    /portal/ now redirects to / which serves the landing page.
+    """
+    return redirect("root")
 
 
 def signup(request):
