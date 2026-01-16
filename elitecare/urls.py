@@ -1,14 +1,14 @@
 from django.contrib import admin
 from django.urls import path, include
-from django.shortcuts import redirect
 from django.views.generic import TemplateView
+from portal.views import root_redirect
 
 admin.site.site_header = "CORECare Access"
 admin.site.site_title = "CORECare Access"
 admin.site.index_title = "Home : BayArea Elite Homecare"
 
 urlpatterns = [
-    path("", lambda request: redirect("/portal/")),  # 👈 MUST BE FIRST
+    path("", root_redirect, name="root"),  # Issue #29: Smart redirect
 
     path("caregiver/", include("caregiver_portal.urls")),
     path("admin/", admin.site.urls),

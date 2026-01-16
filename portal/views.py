@@ -6,7 +6,20 @@ from .forms import SignUpForm
 
 def logout_view(request):
     logout(request)
-    return redirect("/portal/login/")
+    return redirect("portal_home")
+
+
+def root_redirect(request):
+    """
+    Issue #29: Smart root URL redirect.
+    Routes authenticated users to their appropriate dashboard.
+    """
+    if request.user.is_authenticated:
+        from clients.models import ClientFamilyMember
+        if ClientFamilyMember.objects.filter(user=request.user).exists():
+            return redirect("family_home")
+        return redirect("employee_dashboard")
+    return redirect("portal_home")
 
 
 def login_view(request):
