@@ -29,3 +29,26 @@ A 20-year veteran who has occupied every seat at this table. Expert in systems t
 1. Each committee member provides their critical review
 2. The Judge synthesizes all feedback into a final, unified plan
 3. The plan balances technical elegance with business impact, TCO, and long-term maintainability
+
+## Available MCP Servers
+
+The following MCP (Model Context Protocol) servers are configured and available for all AI models working on this project:
+
+### Render MCP Server
+- **URL**: `https://mcp.render.com/mcp`
+- **Status**: ✓ Connected
+- **Use Cases**:
+  - Check deployment status of commits
+  - Monitor production environment health
+  - Trigger redeployments when needed
+  - View build logs and error details
+  - Query environment variables and configuration
+
+**Example Usage**:
+```bash
+# Check if a specific commit is deployed in production
+# Check deployment status and logs
+# Trigger a redeploy after pushing changes
+```
+
+All AI models should leverage this MCP server when working on deployment-related tasks, debugging production issues, or verifying that code changes have been successfully deployed.
