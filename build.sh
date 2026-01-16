@@ -2,6 +2,8 @@
 # Exit on error
 set -o errexit
 
+# Trigger deployment of design system consolidation (Issue #35) and MCP server integration
+
 # Install dependencies
 pip install -r requirements.txt
 
