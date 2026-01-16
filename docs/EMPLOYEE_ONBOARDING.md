@@ -75,6 +75,39 @@ To temporarily disable self-registration:
 
 3. **Click "Log In"** to access your dashboard
 
+### 📱 Install the App (Recommended)
+
+COREcare Access works offline! To get the best experience:
+
+**On iPhone (Safari):**
+1. Tap the **Share** button (box with arrow).
+2. Scroll down and tap **"Add to Home Screen"**.
+3. Takes you to your home screen like a native app.
+
+**On Android (Chrome):**
+1. Tap the menu (three dots).
+2. Tap **"Install App"** or "Add to Home Screen".
+3. The app is now installed on your phone.
+
+---
+
+## Daily Usage Requirements
+
+### 📍 Location Services
+You **MUST allow location access** to clock in and out. The app uses GPS to verify you are at the client's home.
+- If denied, you will see an error message.
+- Go to your Phone Settings -> Privacy -> Location Services to enable it for your browser.
+
+### 🚗 Mileage Reporting
+- You must enter mileage when clocking out.
+- The system checks for realistic values (Max 500 miles allowed per visit).
+
+### 📶 Offline Mode
+- If you lose signal, **keep working!**
+- Clock In/Out even without internet.
+- The app will say "Offline Mode Active" (Orange banner).
+- When you get back to signal, the app will automatically sync your times.
+
 ### Forgot Your Password?
 
 Contact your administrator to reset your password. They can do this through the Django admin panel.
@@ -87,6 +120,11 @@ Contact your administrator to reset your password. They can do this through the 
 
 - Double-check that you entered the invite code exactly as provided (case-sensitive)
 - Contact your administrator to verify the current invite code
+
+### "Location Access Denied" Error
+
+- You clicked "Block" when asked for location.
+- Reset permission in your browser settings (click the lock icon in URL bar).
 
 ### "Employee registration is currently disabled" Error
 
