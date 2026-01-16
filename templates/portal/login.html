@@ -3,28 +3,32 @@
 {% block title %}Log In{% endblock %}
 
 {% block content %}
-<div class="card">
-  <h2>Welcome Back 👋</h2>
-  <p style="color:#7f8c8d; margin-bottom: 20px;">Please log in to continue.</p>
+<div class="card auth-card">
+  <h2 class="auth-title">Welcome Back 👋</h2>
+  <p class="auth-subtitle">Please log in to continue.</p>
 
   {% if error %}
-  <p style="color: #e74c3c; background: #fadbd8; padding: 10px; border-radius: 6px;">{{ error }}</p>
+  <div class="form-error">{{ error }}</div>
   {% endif %}
 
-  <form method="POST">
+  <form method="POST" class="auth-form">
     {% csrf_token %}
 
-    <label>Username</label>
-    <input name="username" type="text" required>
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input name="username" type="text" class="form-input" required>
+    </div>
 
-    <label>Password</label>
-    <input type="password" name="password" required>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input type="password" name="password" class="form-input" required>
+    </div>
 
     <button type="submit" class="btn btn-primary">Log In</button>
   </form>
 </div>
 
 <div class="text-center mt-2">
-  <p class="text-small">Don't have an account? <a href="{% url 'signup' %}">Sign Up</a></p>
+  <p>Don't have an account? <a href="{% url 'signup' %}" class="auth-link">Sign Up</a></p>
 </div>
 {% endblock %}

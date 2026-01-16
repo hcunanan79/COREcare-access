@@ -312,6 +312,62 @@ body {
   box-shadow: 0 0 0 3px var(--primary-light);
 }
 
+.form-help {
+  color: var(--text-muted);
+  display: block;
+  margin-top: 4px;
+  font-size: 0.85rem;
+}
+
+.form-field-error {
+  color: var(--danger);
+  display: block;
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+.form-error {
+  background: #fadbd8;
+  color: var(--danger);
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.auth-card {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.auth-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+
+.auth-subtitle {
+  color: var(--text-light);
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+}
+
+.auth-form {
+  margin-bottom: 20px;
+}
+
+.auth-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.auth-link:hover {
+  color: var(--primary-hover);
+}
+
 /* ====== UTILITIES ====== */
 .text-muted {
   color: var(--text-light);
@@ -345,6 +401,175 @@ body {
   margin-bottom: 24px;
 }
 
+/* ====== FAMILY PORTAL SPECIFIC ====== */
+.back-link {
+  text-decoration: none;
+  color: var(--primary);
+  font-weight: 600;
+  display: inline-block;
+  margin-bottom: 16px;
+  transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: var(--primary-hover);
+}
+
+.client-header {
+  background: var(--navy);
+  color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.client-header h1 {
+  color: white;
+  margin: 0;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.client-header-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  margin: 8px 0 0 0;
+}
+
+.family-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .family-detail-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.card-section-title {
+  color: var(--navy);
+  border-bottom: 2px solid #f5f7fa;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.shift-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.shift-date-badge {
+  background: rgba(46, 204, 113, 0.1);
+  color: var(--primary);
+  padding: 8px;
+  border-radius: 8px;
+  text-align: center;
+  min-width: 60px;
+  flex-shrink: 0;
+}
+
+.shift-date-day {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.shift-date-month {
+  font-size: 12px;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.shift-details {
+  flex: 1;
+}
+
+.shift-day {
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.shift-time {
+  color: var(--text-light);
+  font-size: 0.95rem;
+}
+
+.shift-caregiver {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.message-container {
+  max-height: 400px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.message {
+  padding: 12px;
+  border-radius: 8px;
+  max-width: 85%;
+  word-break: break-word;
+}
+
+.message-user {
+  background: rgba(46, 204, 113, 0.1);
+  align-self: flex-end;
+  border-bottom-right-radius: 0;
+}
+
+.message-other {
+  background: #f5f7fa;
+  align-self: flex-start;
+  border-bottom-left-radius: 0;
+}
+
+.message-meta {
+  font-size: 12px;
+  margin-bottom: 4px;
+  color: var(--text-muted);
+}
+
+.message-content {
+  color: var(--navy);
+}
+
+.message-empty {
+  text-align: center;
+  padding: 20px;
+  color: #bdc3c7;
+}
+
+.message-form {
+  border-top: 1px solid #eee;
+  padding-top: 16px;
+}
+
+.form-actions {
+  text-align: right;
+}
+
+.empty-message {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.error-message {
+  color: var(--danger);
+  font-weight: 500;
+}
+
 /* ====== RESPONSIVE ====== */
 @media (max-width: 600px) {
   .header {
@@ -374,5 +599,17 @@ body {
   .card-header {
     flex-direction: column;
     gap: 10px;
+  }
+
+  .message {
+    max-width: 95%;
+  }
+
+  .family-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .client-header h1 {
+    font-size: 1.4rem;
   }
 }
