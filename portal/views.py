@@ -12,14 +12,24 @@ def logout_view(request):
 def root_redirect(request):
     """
     Issue #29 + #31: Smart root URL handling.
-    - Authenticated users: route to appropriate dashboard
-    - Anonymous users: render landing page directly (no redirect)
+    - Admin/Staff: route to Django admin panel
+    - Family members: route to Family Portal
+    - Caregivers: route to Employee Dashboard
+    - Anonymous users: render landing page directly
     """
     if request.user.is_authenticated:
+        # Admins go to admin panel
+        if request.user.is_staff or request.user.is_superuser:
+            return redirect("/admin/")
+        
+        # Family members go to family portal
         from clients.models import ClientFamilyMember
         if ClientFamilyMember.objects.filter(user=request.user).exists():
             return redirect("family_home")
+        
+        # Everyone else (caregivers) go to employee dashboard
         return redirect("employee_dashboard")
+    
     # Issue #31: Render landing page directly, no redirect
     return render(request, "portal/landing.html")
 
@@ -37,6 +47,10 @@ def login_view(request):
             next_url = request.GET.get("next")
             if next_url:
                 return redirect(next_url)
+            
+            # Admins go to admin panel
+            if user.is_staff or user.is_superuser:
+                return redirect("/admin/")
             
             # Check if user is a Family Member
             from clients.models import ClientFamilyMember
