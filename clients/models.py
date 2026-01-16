@@ -55,3 +55,47 @@ class CareTeam(User):
         app_label = "auth"              # keeps it under Authentication and Authorization
         verbose_name = "Care Team"
         verbose_name_plural = "Care Team"
+
+
+from django.conf import settings
+
+class ClientFamilyMember(models.Model):
+    """
+    Issue #22: Links a User (Family) to a Client for schedule visibility.
+    """
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='family_members')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='linked_clients')
+    relationship = models.CharField(max_length=50, blank=True, help_text="e.g. Son, Daughter, Spouse")
+    
+    # Permissions
+    can_view_schedule = models.BooleanField(default=True)
+    can_message_caregivers = models.BooleanField(default=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['client', 'user']
+        verbose_name = "Family Member"
+        verbose_name_plural = "Family Members"
+
+    def __str__(self):
+        return f"{self.user} ({self.relationship}) -> {self.client}"
+
+
+class ClientMessage(models.Model):
+    """
+    Issue #22: Communication channel between Family and Caregivers (via Client context).
+    """
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='messages')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    # Optional: visibility flags (e.g. private to admin vs public to caregivers)
+    is_internal_only = models.BooleanField(default=False, help_text="If true, only visible to admins/staff, not caregivers.")
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Msg from {self.author} re: {self.client} at {self.created_at.strftime('%Y-%m-%d %H:%M')}"

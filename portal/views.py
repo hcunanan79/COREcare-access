@@ -61,3 +61,66 @@ def employee_dashboard(request):
 def offline_view(request):
     """Fallback page for offline PWA requests"""
     return render(request, "offline.html")
+
+
+@login_required
+def family_home(request):
+    """
+    Issue #22: Family Portal Home.
+    Lists all clients linked to the logged-in user.
+    """
+    from clients.models import ClientFamilyMember
+    
+    links = ClientFamilyMember.objects.filter(user=request.user).select_related('client')
+    
+    context = {
+        'links': links,
+    }
+    return render(request, 'portal/family_home.html', context)
+
+
+@login_required
+def family_client_detail(request, client_id):
+    """
+    Issue #22: View client schedule and messages.
+    """
+    from django.shortcuts import get_object_or_404
+    from clients.models import ClientFamilyMember, ClientMessage
+    from shifts.models import Shift
+    from django.utils import timezone
+    from django.core.exceptions import PermissionDenied
+    
+    # Verify access
+    link = get_object_or_404(ClientFamilyMember, client_id=client_id, user=request.user)
+    
+    if request.method == "POST":
+        if not link.can_message_caregivers:
+            raise PermissionDenied("You do not have permission to post messages.")
+            
+        content = request.POST.get('content')
+        if content:
+            ClientMessage.objects.create(
+                client_id=client_id,
+                author=request.user,
+                content=content
+            )
+        return redirect('family_client_detail', client_id=client_id)
+
+    # Fetch simple schedule (next 14 days)
+    today = timezone.now().date()
+    upcoming_shifts = []
+    if link.can_view_schedule:
+        upcoming_shifts = Shift.objects.filter(
+            client_id=client_id,
+            start_time__date__gte=today
+        ).order_by('start_time')[:10]
+        
+    messages = ClientMessage.objects.filter(client_id=client_id).select_related('author')[:50]
+    
+    context = {
+        'link': link,
+        'client': link.client,
+        'upcoming_shifts': upcoming_shifts,
+        'messages': messages,
+    }
+    return render(request, 'portal/family_client_detail.html', context)
