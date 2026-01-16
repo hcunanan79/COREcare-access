@@ -3,16 +3,26 @@
  */
 
 :root {
-  --primary-dark: #417690;
-  --primary-light: #79aec8;
-  --secondary: #447e9b;
-  --bg: #f8f8f8;
-  --text: #333;
-  --text-light: #666;
-  --card: #fff;
-  --border: #ccc;
-  --success: #44ac44;
-  --warning: #efb829;
+  --primary-dark: #2ecc71;
+  /* Emerald Green - Primary Action */
+  --primary-light: #abebc6;
+  /* Light Green - Accents */
+  --secondary: #27ae60;
+  /* Dark Green - Hover/Active */
+  --brand-navy: #2c3e50;
+  /* Dark Slate - Headers/Text */
+  --bg: #f5f7fa;
+  /* App Background */
+  --text: #2c3e50;
+  /* Main Text */
+  --text-light: #7f8c8d;
+  /* Secondary Text */
+  --card: #ffffff;
+  /* Surface */
+  --border: #bdc3c7;
+  --success: #2ecc71;
+  --warning: #f1c40f;
+  --danger: #e74c3c;
 }
 
 * {
@@ -30,7 +40,7 @@ body {
 
 /* Header */
 .header {
-  background: var(--primary-dark);
+  background: var(--brand-navy);
   color: #fff;
   padding: 12px 20px;
   display: flex;
@@ -74,7 +84,7 @@ body {
 }
 
 .page-title {
-  color: var(--primary-dark);
+  color: var(--brand-navy);
   font-size: 24px;
   font-weight: 700;
   margin-bottom: 8px;
@@ -105,7 +115,7 @@ body {
 .card-title {
   font-size: 18px;
   font-weight: 600;
-  color: var(--primary-dark);
+  color: var(--brand-navy);
 }
 
 .card-badge {
@@ -192,8 +202,8 @@ body {
 }
 
 .btn-secondary {
-  background: var(--primary-light);
-  color: #fff;
+  background: #ecf0f1;
+  color: var(--brand-navy);
 }
 
 .btn-secondary:hover {

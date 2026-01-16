@@ -11,7 +11,7 @@
 
 	<!-- Issue #16: PWA Manifest and Service Worker -->
 	<link rel="manifest" href="{% static 'manifest.json' %}">
-	<meta name="theme-color" content="#417690">
+	<meta name="theme-color" content="#2c3e50">
 	<script>
 		if ('serviceWorker' in navigator) {
 			window.addEventListener('load', () => {
@@ -32,7 +32,7 @@
 	<!-- Simple Mobile Header -->
 	<div style="margin-bottom: 20px; text-align: center;">
 		<img src="{% static 'portal/logo.png' %}" alt="CORECare Logo" width="80" style="margin-bottom: 10px;">
-		<h3 style="margin:0; color:#bdc3c7;">CORECare Access</h3>
+		<h3 style="margin:0; color:#2c3e50;">CORECare Access</h3>
 	</div>
 
 	{% block content %}{% endblock %}
