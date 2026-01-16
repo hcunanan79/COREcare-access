@@ -11,12 +11,15 @@ def logout_view(request):
 
 def root_redirect(request):
     """
-    Issue #29 + #31: Smart root URL handling.
+    Issue #29 + #31 + #33: Smart root URL handling.
     - Admin/Staff: route to Django admin panel
     - Family members: route to Family Portal
     - Caregivers: route to Employee Dashboard
     - Anonymous users: render landing page directly
+    
+    Issue #33: Handle POST for login to keep users on landing page.
     """
+    # Handle authenticated users
     if request.user.is_authenticated:
         # Admins go to admin panel
         if request.user.is_staff or request.user.is_superuser:
@@ -30,8 +33,39 @@ def root_redirect(request):
         # Everyone else (caregivers) go to employee dashboard
         return redirect("employee_dashboard")
     
+    # Issue #33: Handle login POST on landing page
+    # This keeps users on the landing page with error messages instead of
+    # redirecting to /portal/login/ which has different styling
+    error = None
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        
+        user = authenticate(request, username=username, password=password)
+        if user:
+            login(request, user)
+            
+            # Smart Redirect Logic (same as login_view)
+            next_url = request.GET.get("next")
+            if next_url:
+                return redirect(next_url)
+            
+            # Admins go to admin panel
+            if user.is_staff or user.is_superuser:
+                return redirect("/admin/")
+            
+            # Check if user is a Family Member
+            from clients.models import ClientFamilyMember
+            if ClientFamilyMember.objects.filter(user=user).exists():
+                return redirect("family_home")
+            
+            # Default to Employee/Caregiver Dashboard
+            return redirect("employee_dashboard")
+        else:
+            error = "Invalid username or password"
+    
     # Issue #31: Render landing page directly, no redirect
-    return render(request, "portal/landing.html")
+    return render(request, "portal/landing.html", {"error": error})
 
 
 def login_view(request):
