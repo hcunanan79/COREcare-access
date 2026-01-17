@@ -231,3 +231,91 @@ ClientCalendarEvent.objects.model = ClientCalendarEvent
 # Keep a reference to all objects (including deleted)
 ClientCalendarEvent.all_objects = models.Manager()
 ClientCalendarEvent.all_objects.model = ClientCalendarEvent
+
+
+def event_attachment_path(instance, filename):
+    """Generate path for event attachments: media/events/{client_id}/{event_id}/{filename}"""
+    return f"events/{instance.event.client_id}/{instance.event_id}/{filename}"
+
+
+class EventAttachment(models.Model):
+    """
+    Issue #40: File attachments for calendar events.
+    Supports documents, images, PDFs, etc.
+    """
+    event = models.ForeignKey(
+        ClientCalendarEvent,
+        on_delete=models.CASCADE,
+        related_name='attachments'
+    )
+    file = models.FileField(upload_to=event_attachment_path)
+    original_filename = models.CharField(max_length=255)
+    file_size = models.PositiveIntegerField(help_text="File size in bytes")
+    content_type = models.CharField(max_length=100, blank=True)
+    
+    # Audit
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='uploaded_attachments'
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-uploaded_at']
+        verbose_name = "Event Attachment"
+        verbose_name_plural = "Event Attachments"
+    
+    def save(self, *args, **kwargs):
+        # Auto-populate file_size and content_type if not set
+        if self.file and not self.file_size:
+            self.file_size = self.file.size
+        if not self.original_filename and self.file:
+            self.original_filename = self.file.name.split('/')[-1]
+        super().save(*args, **kwargs)
+    
+    @property
+    def file_extension(self):
+        """Get the file extension."""
+        if self.original_filename:
+            parts = self.original_filename.rsplit('.', 1)
+            if len(parts) > 1:
+                return parts[1].lower()
+        return ''
+    
+    @property
+    def file_icon(self):
+        """Return an icon for the file type."""
+        ext = self.file_extension
+        icons = {
+            'pdf': '📄',
+            'doc': '📝', 'docx': '📝',
+            'xls': '📊', 'xlsx': '📊',
+            'ppt': '📽️', 'pptx': '📽️',
+            'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️', 'webp': '🖼️',
+            'mp3': '🎵', 'wav': '🎵', 'm4a': '🎵',
+            'mp4': '🎬', 'mov': '🎬', 'avi': '🎬',
+            'zip': '📦', 'rar': '📦', '7z': '📦',
+            'txt': '📃',
+        }
+        return icons.get(ext, '📎')
+    
+    @property
+    def is_image(self):
+        """Check if the file is an image."""
+        return self.file_extension in ['jpg', 'jpeg', 'png', 'gif', 'webp']
+    
+    @property
+    def human_file_size(self):
+        """Return human-readable file size."""
+        size = self.file_size
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size < 1024:
+                return f"{size:.1f} {unit}"
+            size /= 1024
+        return f"{size:.1f} TB"
+    
+    def __str__(self):
+        return f"{self.original_filename} ({self.human_file_size})"
+

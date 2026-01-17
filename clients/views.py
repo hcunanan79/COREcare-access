@@ -10,7 +10,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.contrib import messages
 
-from .models import Client, ClientFamilyMember, ClientCalendarEvent
+from .models import Client, ClientFamilyMember, ClientCalendarEvent, EventAttachment
 from .services import CalendarService
 
 
@@ -254,6 +254,7 @@ def delete_event(request, client_id, event_id):
     """
     Issue #40: Soft-delete a calendar event.
     SECURITY: Validates ClientFamilyMember link before allowing delete.
+    Supports both regular POST and AJAX requests.
     """
     link = _check_client_access(request.user, client_id)
     event = get_object_or_404(ClientCalendarEvent, id=event_id, client_id=client_id)
@@ -261,6 +262,16 @@ def delete_event(request, client_id, event_id):
     if request.method == 'POST':
         event_title = event.title
         event.soft_delete()
+        
+        # Check if AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': f"Event '{event_title}' deleted.",
+                'event_id': event_id,
+                'undo_url': f'/clients/{client_id}/events/{event_id}/restore/',
+            })
+        
         messages.success(request, f"Event '{event_title}' deleted.")
         return redirect('client_calendar', client_id=client_id)
     
@@ -272,6 +283,35 @@ def delete_event(request, client_id, event_id):
         'event': event,
     }
     return render(request, 'clients/event_delete_confirm.html', context)
+
+
+@login_required
+def restore_event(request, client_id, event_id):
+    """
+    Issue #40: Restore a soft-deleted event (Undo feature).
+    SECURITY: Validates ClientFamilyMember link before allowing restore.
+    """
+    link = _check_client_access(request.user, client_id)
+    
+    # Use all_objects to find soft-deleted events
+    event = get_object_or_404(ClientCalendarEvent.all_objects, id=event_id, client_id=client_id)
+    
+    if request.method == 'POST':
+        event.restore()
+        
+        # Check if AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': f"Event '{event.title}' restored.",
+                'event_id': event_id,
+            })
+        
+        messages.success(request, f"Event '{event.title}' restored.")
+        return redirect('client_calendar', client_id=client_id)
+    
+    # GET request - not supported, redirect
+    return redirect('client_calendar', client_id=client_id)
 
 
 @login_required
@@ -314,3 +354,106 @@ def calendar_api(request, client_id):
         })
     
     return JsonResponse(events, safe=False)
+
+
+@login_required
+def upload_attachment(request, client_id, event_id):
+    """
+    Issue #40: Upload file attachment to an event.
+    SECURITY: Validates ClientFamilyMember link before allowing upload.
+    """
+    link = _check_client_access(request.user, client_id)
+    event = get_object_or_404(ClientCalendarEvent, id=event_id, client_id=client_id)
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    files = request.FILES.getlist('files')
+    if not files:
+        return JsonResponse({'error': 'No files provided'}, status=400)
+    
+    # Allowed file types (security)
+    ALLOWED_EXTENSIONS = {
+        'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+        'jpg', 'jpeg', 'png', 'gif', 'webp',
+        'mp3', 'wav', 'm4a',
+        'mp4', 'mov', 'avi',
+        'txt', 'csv', 'zip'
+    }
+    MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
+    
+    uploaded = []
+    errors = []
+    
+    for file in files:
+        # Check file size
+        if file.size > MAX_FILE_SIZE:
+            errors.append(f"{file.name}: File too large (max 50MB)")
+            continue
+        
+        # Check extension
+        ext = file.name.rsplit('.', 1)[-1].lower() if '.' in file.name else ''
+        if ext not in ALLOWED_EXTENSIONS:
+            errors.append(f"{file.name}: File type not allowed")
+            continue
+        
+        # Create attachment
+        attachment = EventAttachment(
+            event=event,
+            file=file,
+            original_filename=file.name,
+            file_size=file.size,
+            content_type=file.content_type or '',
+            uploaded_by=request.user
+        )
+        attachment.save()
+        
+        uploaded.append({
+            'id': attachment.id,
+            'name': attachment.original_filename,
+            'size': attachment.human_file_size,
+            'icon': attachment.file_icon,
+            'url': attachment.file.url,
+            'is_image': attachment.is_image,
+            'delete_url': f'/clients/{client_id}/events/{event_id}/attachments/{attachment.id}/delete/',
+        })
+    
+    return JsonResponse({
+        'success': True,
+        'uploaded': uploaded,
+        'errors': errors,
+    })
+
+
+@login_required
+def delete_attachment(request, client_id, event_id, attachment_id):
+    """
+    Issue #40: Delete a file attachment.
+    SECURITY: Validates ClientFamilyMember link before allowing delete.
+    """
+    link = _check_client_access(request.user, client_id)
+    event = get_object_or_404(ClientCalendarEvent, id=event_id, client_id=client_id)
+    attachment = get_object_or_404(EventAttachment, id=attachment_id, event=event)
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    filename = attachment.original_filename
+    
+    # Delete the file from storage
+    if attachment.file:
+        attachment.file.delete(save=False)
+    
+    # Delete the database record
+    attachment.delete()
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'message': f"'{filename}' deleted.",
+        })
+    
+    messages.success(request, f"Attachment '{filename}' deleted.")
+    return redirect('edit_event', client_id=client_id, event_id=event_id)
+
+
