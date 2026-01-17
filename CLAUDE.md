@@ -106,10 +106,38 @@ Key tools available from GitHub MCP include:
 - `create_pull_request` - Programmatically create PRs
 
 ### How to Use MCP Tools
-Simply request what you need in natural language:
+
+**IMPORTANT: Set the Render Workspace First**
+
+Before requesting Render operations, inform Claude Code which workspace to use:
+```
+Set my Render workspace to corecare-access
+```
+
+This tells the Render MCP server to operate within this project's workspace and is required for the tools to function.
+
+Then simply request what you need in natural language:
 - "Check the deployment status of the latest commit"
-- "Create an issue for the bug we discussed"
-- "List all open PRs waiting for review"
-- "Get the CPU metrics for the last hour"
+- "Create a new PostgreSQL database for backups"
+- "Get the CPU and memory metrics for the last 24 hours"
+- "Pull recent error-level logs from the application"
+- "Set the ENVIRONMENT environment variable to production"
+
+**Render MCP Tool Examples:**
+```bash
+# Check deployment history
+"List the last 10 deployments and show their status"
+
+# Monitor performance
+"Get the CPU, memory, and HTTP request metrics for the last hour"
+
+# Troubleshoot issues
+"Show me all error-level logs from the last 30 minutes"
+
+# Database operations (requires workspace context)
+"Create a new PostgreSQL database with 5 GB storage"
+```
 
 Claude Code will automatically locate and invoke the appropriate MCP tool to fulfill the request.
+
+**GitHub MCP Tools** don't require workspace setup—they operate on the repository directly.
