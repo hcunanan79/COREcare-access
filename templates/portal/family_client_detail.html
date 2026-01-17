@@ -21,10 +21,19 @@
 
         <!-- Schedule Section -->
         <div class="card">
-            <h2 class="card-section-title">📅 Upcoming Schedule</h2>
+            <div class="card-header-row">
+                <h2 class="card-section-title">📅 Upcoming Schedule</h2>
+                {% if link.can_view_schedule %}
+                <a href="{% url 'client_calendar' client_id=client.id %}" class="btn btn-secondary btn-small">
+                    View Full Calendar
+                </a>
+                {% endif %}
+            </div>
 
             {% if link.can_view_schedule %}
-            {% if upcoming_shifts %}
+            {% if upcoming_shifts or upcoming_events %}
+
+            <!-- Show shifts -->
             {% for shift in upcoming_shifts %}
             <div class="shift-item">
                 <div class="shift-date-badge">
@@ -37,13 +46,38 @@
                         {{ shift.start_time|date:"g:i A" }} - {{ shift.end_time|date:"g:i A" }}
                     </div>
                     <div class="shift-caregiver">
-                        Caregiver: {{ shift.caregiver.first_name }} {{ shift.caregiver.last_name|slice:":1" }}.
+                        👤 Caregiver: {{ shift.caregiver.first_name }} {{ shift.caregiver.last_name|slice:":1" }}.
                     </div>
                 </div>
             </div>
             {% endfor %}
+
+            <!-- Show family events -->
+            {% for event in upcoming_events %}
+            <div class="shift-item event-item">
+                <div class="shift-date-badge event-badge">
+                    <div class="shift-date-day">{{ event.start_time|date:"d" }}</div>
+                    <div class="shift-date-month">{{ event.start_time|date:"M" }}</div>
+                </div>
+                <div class="shift-details">
+                    <div class="shift-day">{{ event.event_type_icon }} {{ event.title }}</div>
+                    <div class="shift-time">
+                        {{ event.start_time|date:"g:i A" }} - {{ event.end_time|date:"g:i A" }}
+                    </div>
+                    {% if event.location %}
+                    <div class="shift-caregiver">
+                        <i class="fas fa-map-marker-alt"></i> {{ event.location }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
             {% else %}
-            <p class="empty-message">No upcoming shifts scheduled.</p>
+            <p class="empty-message">No upcoming shifts or events scheduled.</p>
+            <a href="{% url 'create_event' client_id=client.id %}" class="btn btn-primary" style="margin-top: 0.5rem;">
+                <i class="fas fa-plus"></i> Add Event
+            </a>
             {% endif %}
             {% else %}
             <p class="error-message">Schedule access is restricted.</p>
@@ -59,7 +93,8 @@
                 {% for msg in messages reversed %}
                 <div class="message {% if msg.author == request.user %}message-user{% else %}message-other{% endif %}">
                     <div class="message-meta">
-                        {% if msg.author == request.user %}You{% else %}{{ msg.author.get_full_name|default:msg.author.username }}{% endif %}
+                        {% if msg.author == request.user %}You{% else %}{{
+                        msg.author.get_full_name|default:msg.author.username }}{% endif %}
                         &bull; {{ msg.created_at|date:"M d, g:i A" }}
                     </div>
                     <div class="message-content">

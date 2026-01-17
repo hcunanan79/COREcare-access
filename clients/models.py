@@ -99,3 +99,135 @@ class ClientMessage(models.Model):
 
     def __str__(self):
         return f"Msg from {self.author} re: {self.client} at {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+
+
+class ClientCalendarEvent(models.Model):
+    """
+    Issue #40: Family-managed calendar events for clients.
+    Allows family members to add appointments, activities, and other events
+    that caregivers should be aware of.
+    """
+    
+    class EventType(models.TextChoices):
+        MEDICAL = 'medical', 'Medical'
+        SOCIAL = 'social', 'Social'
+        FAMILY = 'family', 'Family'
+        THERAPY = 'therapy', 'Therapy'
+        TRANSPORTATION = 'transportation', 'Transportation'
+        OTHER = 'other', 'Other'
+    
+    client = models.ForeignKey(
+        Client, 
+        on_delete=models.CASCADE, 
+        related_name='calendar_events'
+    )
+    title = models.CharField(max_length=200)
+    event_type = models.CharField(
+        max_length=20, 
+        choices=EventType.choices, 
+        default=EventType.OTHER
+    )
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    location = models.CharField(max_length=255, blank=True)
+    description = models.TextField(blank=True)
+    
+    # Audit fields
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True,
+        related_name='created_calendar_events'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # Soft delete support
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    
+    # Future: External calendar sync
+    external_id = models.CharField(
+        max_length=255, 
+        blank=True, 
+        help_text="External calendar event ID (Google, Outlook, etc.)"
+    )
+    
+    class Meta:
+        ordering = ['start_time']
+        indexes = [
+            # Optimizes date-range queries for client calendar view
+            models.Index(fields=['client', 'start_time'], name='idx_event_client_start'),
+            # Optimizes "my recent events" queries
+            models.Index(fields=['created_by', 'created_at'], name='idx_event_creator'),
+        ]
+        verbose_name = "Calendar Event"
+        verbose_name_plural = "Calendar Events"
+    
+    def clean(self):
+        """Validate that end_time is after start_time."""
+        from django.core.exceptions import ValidationError
+        
+        if self.end_time and self.start_time:
+            if self.end_time <= self.start_time:
+                raise ValidationError({
+                    'end_time': 'End time must be after start time.'
+                })
+    
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+    
+    def soft_delete(self):
+        """Mark the event as deleted without removing from database."""
+        from django.utils import timezone
+        self.deleted_at = timezone.now()
+        self.save(update_fields=['deleted_at'])
+    
+    def restore(self):
+        """Restore a soft-deleted event."""
+        self.deleted_at = None
+        self.save(update_fields=['deleted_at'])
+    
+    @property
+    def is_deleted(self):
+        return self.deleted_at is not None
+    
+    @property
+    def event_type_icon(self):
+        """Return an icon for the event type (for accessibility)."""
+        icons = {
+            'medical': '🩺',
+            'social': '👥',
+            'family': '👨‍👩‍👧',
+            'therapy': '💆',
+            'transportation': '🚗',
+            'other': '📌',
+        }
+        return icons.get(self.event_type, '📌')
+    
+    def __str__(self):
+        return f"{self.title} ({self.client}) - {self.start_time.strftime('%Y-%m-%d %H:%M')}"
+
+
+class ClientCalendarEventManager(models.Manager):
+    """Custom manager to filter out soft-deleted events by default."""
+    
+    def get_queryset(self):
+        return super().get_queryset().filter(deleted_at__isnull=True)
+    
+    def with_deleted(self):
+        """Include soft-deleted events."""
+        return super().get_queryset()
+    
+    def deleted_only(self):
+        """Only soft-deleted events."""
+        return super().get_queryset().filter(deleted_at__isnull=False)
+
+
+# Replace the default manager with the custom one
+ClientCalendarEvent.objects = ClientCalendarEventManager()
+ClientCalendarEvent.objects.model = ClientCalendarEvent
+
+# Keep a reference to all objects (including deleted)
+ClientCalendarEvent.all_objects = models.Manager()
+ClientCalendarEvent.all_objects.model = ClientCalendarEvent

@@ -13,6 +13,7 @@ urlpatterns = [
     path("caregiver/", include("caregiver_portal.urls")),
     path("admin/", admin.site.urls),
     path("schedule/", include("clients.urls")),
+    path("clients/", include("clients.urls")),  # Issue #40: Client calendar routes
     path("portal/", include("portal.urls")),
     
     # Issue #16: Service Worker for PWA (must be at root scope)
