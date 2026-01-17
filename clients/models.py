@@ -5,6 +5,7 @@ class Client(models.Model):
     first_name = models.CharField(max_length=100, blank=True, null=True)
     last_name  = models.CharField(max_length=100, blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
+    photo = models.ImageField(upload_to="client_photos/", blank=True, null=True)
 
     diagnosis = models.TextField(blank=True)
     care_plan = models.TextField(blank=True)

@@ -9,6 +9,7 @@ class EmployeeProfile(models.Model):
     phone = models.CharField(max_length=30, blank=True, null=True)
     title = models.CharField(max_length=80, blank=True, null=True)          # e.g., Caregiver, RN, Admin
     employee_id = models.CharField(max_length=50, blank=True, null=True)
+    profile_picture = models.ImageField(upload_to="employee_photos/", blank=True, null=True)
 
     address_line1 = models.CharField(max_length=255, blank=True, null=True)
     city = models.CharField(max_length=80, blank=True, null=True)
