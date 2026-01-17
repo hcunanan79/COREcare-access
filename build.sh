@@ -2,8 +2,7 @@
 # Exit on error
 set -o errexit
 
-# Trigger deployment of design system consolidation (Issue #35) and MCP server integration
-# Phase 3 (DOCUMENT): CSS linting to enforce design system standards
+# Deployment: Update landing page tagline to "Easing the way to better care"
 
 # Install Python dependencies
 pip install -r requirements.txt
