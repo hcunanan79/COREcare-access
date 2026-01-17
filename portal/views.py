@@ -158,10 +158,10 @@ def family_home(request):
 @login_required
 def family_client_detail(request, client_id):
     """
-    Issue #22: View client schedule and messages.
+    Issue #22 + #40: View client schedule, events, and messages.
     """
     from django.shortcuts import get_object_or_404
-    from clients.models import ClientFamilyMember, ClientMessage
+    from clients.models import ClientFamilyMember, ClientMessage, ClientCalendarEvent
     from shifts.models import Shift
     from django.utils import timezone
     from django.core.exceptions import PermissionDenied
@@ -185,8 +185,16 @@ def family_client_detail(request, client_id):
     # Fetch simple schedule (next 14 days)
     today = timezone.now().date()
     upcoming_shifts = []
+    upcoming_events = []
+    
     if link.can_view_schedule:
         upcoming_shifts = Shift.objects.filter(
+            client_id=client_id,
+            start_time__date__gte=today
+        ).order_by('start_time')[:10]
+        
+        # Issue #40: Fetch family-managed events
+        upcoming_events = ClientCalendarEvent.objects.filter(
             client_id=client_id,
             start_time__date__gte=today
         ).order_by('start_time')[:10]
@@ -197,6 +205,8 @@ def family_client_detail(request, client_id):
         'link': link,
         'client': link.client,
         'upcoming_shifts': upcoming_shifts,
+        'upcoming_events': upcoming_events,
         'messages': messages,
     }
     return render(request, 'portal/family_client_detail.html', context)
+

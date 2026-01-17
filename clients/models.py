@@ -99,3 +99,223 @@ class ClientMessage(models.Model):
 
     def __str__(self):
         return f"Msg from {self.author} re: {self.client} at {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+
+
+class ClientCalendarEvent(models.Model):
+    """
+    Issue #40: Family-managed calendar events for clients.
+    Allows family members to add appointments, activities, and other events
+    that caregivers should be aware of.
+    """
+    
+    class EventType(models.TextChoices):
+        MEDICAL = 'medical', 'Medical'
+        SOCIAL = 'social', 'Social'
+        FAMILY = 'family', 'Family'
+        THERAPY = 'therapy', 'Therapy'
+        TRANSPORTATION = 'transportation', 'Transportation'
+        OTHER = 'other', 'Other'
+    
+    client = models.ForeignKey(
+        Client, 
+        on_delete=models.CASCADE, 
+        related_name='calendar_events'
+    )
+    title = models.CharField(max_length=200)
+    event_type = models.CharField(
+        max_length=20, 
+        choices=EventType.choices, 
+        default=EventType.OTHER
+    )
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    location = models.CharField(max_length=255, blank=True)
+    description = models.TextField(blank=True)
+    
+    # Audit fields
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True,
+        related_name='created_calendar_events'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # Soft delete support
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    
+    # Future: External calendar sync
+    external_id = models.CharField(
+        max_length=255, 
+        blank=True, 
+        help_text="External calendar event ID (Google, Outlook, etc.)"
+    )
+    
+    class Meta:
+        ordering = ['start_time']
+        indexes = [
+            # Optimizes date-range queries for client calendar view
+            models.Index(fields=['client', 'start_time'], name='idx_event_client_start'),
+            # Optimizes "my recent events" queries
+            models.Index(fields=['created_by', 'created_at'], name='idx_event_creator'),
+        ]
+        verbose_name = "Calendar Event"
+        verbose_name_plural = "Calendar Events"
+    
+    def clean(self):
+        """Validate that end_time is after start_time."""
+        from django.core.exceptions import ValidationError
+        
+        if self.end_time and self.start_time:
+            if self.end_time <= self.start_time:
+                raise ValidationError({
+                    'end_time': 'End time must be after start time.'
+                })
+    
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+    
+    def soft_delete(self):
+        """Mark the event as deleted without removing from database."""
+        from django.utils import timezone
+        self.deleted_at = timezone.now()
+        self.save(update_fields=['deleted_at'])
+    
+    def restore(self):
+        """Restore a soft-deleted event."""
+        self.deleted_at = None
+        self.save(update_fields=['deleted_at'])
+    
+    @property
+    def is_deleted(self):
+        return self.deleted_at is not None
+    
+    @property
+    def event_type_icon(self):
+        """Return an icon for the event type (for accessibility)."""
+        icons = {
+            'medical': '🩺',
+            'social': '👥',
+            'family': '👨‍👩‍👧',
+            'therapy': '💆',
+            'transportation': '🚗',
+            'other': '📌',
+        }
+        return icons.get(self.event_type, '📌')
+    
+    def __str__(self):
+        return f"{self.title} ({self.client}) - {self.start_time.strftime('%Y-%m-%d %H:%M')}"
+
+
+class ClientCalendarEventManager(models.Manager):
+    """Custom manager to filter out soft-deleted events by default."""
+    
+    def get_queryset(self):
+        return super().get_queryset().filter(deleted_at__isnull=True)
+    
+    def with_deleted(self):
+        """Include soft-deleted events."""
+        return super().get_queryset()
+    
+    def deleted_only(self):
+        """Only soft-deleted events."""
+        return super().get_queryset().filter(deleted_at__isnull=False)
+
+
+# Replace the default manager with the custom one
+ClientCalendarEvent.objects = ClientCalendarEventManager()
+ClientCalendarEvent.objects.model = ClientCalendarEvent
+
+# Keep a reference to all objects (including deleted)
+ClientCalendarEvent.all_objects = models.Manager()
+ClientCalendarEvent.all_objects.model = ClientCalendarEvent
+
+
+def event_attachment_path(instance, filename):
+    """Generate path for event attachments: media/events/{client_id}/{event_id}/{filename}"""
+    return f"events/{instance.event.client_id}/{instance.event_id}/{filename}"
+
+
+class EventAttachment(models.Model):
+    """
+    Issue #40: File attachments for calendar events.
+    Supports documents, images, PDFs, etc.
+    """
+    event = models.ForeignKey(
+        ClientCalendarEvent,
+        on_delete=models.CASCADE,
+        related_name='attachments'
+    )
+    file = models.FileField(upload_to=event_attachment_path)
+    original_filename = models.CharField(max_length=255)
+    file_size = models.PositiveIntegerField(help_text="File size in bytes")
+    content_type = models.CharField(max_length=100, blank=True)
+    
+    # Audit
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='uploaded_attachments'
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-uploaded_at']
+        verbose_name = "Event Attachment"
+        verbose_name_plural = "Event Attachments"
+    
+    def save(self, *args, **kwargs):
+        # Auto-populate file_size and content_type if not set
+        if self.file and not self.file_size:
+            self.file_size = self.file.size
+        if not self.original_filename and self.file:
+            self.original_filename = self.file.name.split('/')[-1]
+        super().save(*args, **kwargs)
+    
+    @property
+    def file_extension(self):
+        """Get the file extension."""
+        if self.original_filename:
+            parts = self.original_filename.rsplit('.', 1)
+            if len(parts) > 1:
+                return parts[1].lower()
+        return ''
+    
+    @property
+    def file_icon(self):
+        """Return an icon for the file type."""
+        ext = self.file_extension
+        icons = {
+            'pdf': '📄',
+            'doc': '📝', 'docx': '📝',
+            'xls': '📊', 'xlsx': '📊',
+            'ppt': '📽️', 'pptx': '📽️',
+            'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️', 'webp': '🖼️',
+            'mp3': '🎵', 'wav': '🎵', 'm4a': '🎵',
+            'mp4': '🎬', 'mov': '🎬', 'avi': '🎬',
+            'zip': '📦', 'rar': '📦', '7z': '📦',
+            'txt': '📃',
+        }
+        return icons.get(ext, '📎')
+    
+    @property
+    def is_image(self):
+        """Check if the file is an image."""
+        return self.file_extension in ['jpg', 'jpeg', 'png', 'gif', 'webp']
+    
+    @property
+    def human_file_size(self):
+        """Return human-readable file size."""
+        size = self.file_size
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size < 1024:
+                return f"{size:.1f} {unit}"
+            size /= 1024
+        return f"{size:.1f} TB"
+    
+    def __str__(self):
+        return f"{self.original_filename} ({self.human_file_size})"
+

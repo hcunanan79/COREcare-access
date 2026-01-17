@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}Edit{% else %}Add{% endif %} Event - {{ client.first_name }}{% endblock %}
+
+{% block content %}
+<div class="main-content">
+
+    <a href="{% url 'client_calendar' client_id=client.id %}" class="back-link">&larr; Back to Calendar</a>
+
+    <div class="client-header">
+        <div>
+            <h1>{% if is_edit %}Edit Event{% else %}Add New Event{% endif %}</h1>
+        </div>
+    </div>
+
+    <div class="card event-form-card">
+        <form method="post" class="event-form" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-section">
+                <div class="form-group">
+                    <label for="title" class="form-label required">Event Title</label>
+                    <input type="text" id="title" name="title" class="form-input" placeholder="e.g., Doctor Appointment" value="{% if event %}{{ event.title }}{% endif %}" required maxlength="200">
+                </div>
+
+                <div class="form-group">
+                    <label for="event_type" class="form-label required">Event Type</label>
+                    <select id="event_type" name="event_type" class="form-input">
+                        <option value="medical" {% if event.event_type == 'medical' %}selected{% endif %}>Medical</option>
+                        <option value="therapy" {% if event.event_type == 'therapy' %}selected{% endif %}>Therapy</option>
+                        <option value="social" {% if event.event_type == 'social' %}selected{% endif %}>Social</option>
+                        <option value="family" {% if event.event_type == 'family' %}selected{% endif %}>Family</option>
+                        <option value="transportation" {% if event.event_type == 'transportation' %}selected{% endif %}>Transportation</option>
+                        <option value="other" {% if event.event_type == 'other' or not event %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="start_date" class="form-label required">Start Date</label>
+                        <input type="date" id="start_date" name="start_date" class="form-input" value="{% if event %}{{ event.start_time|date:'Y-m-d' }}{% else %}{{ default_date }}{% endif %}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="start_time" class="form-label required">Start Time</label>
+                        <input type="time" id="start_time" name="start_time" class="form-input" value="{% if event %}{{ event.start_time|date:'H:i' }}{% else %}09:00{% endif %}" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="end_date" class="form-label required">End Date</label>
+                        <input type="date" id="end_date" name="end_date" class="form-input" value="{% if event %}{{ event.end_time|date:'Y-m-d' }}{% else %}{{ default_date }}{% endif %}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="end_time" class="form-label required">End Time</label>
+                        <input type="time" id="end_time" name="end_time" class="form-input" value="{% if event %}{{ event.end_time|date:'H:i' }}{% else %}10:00{% endif %}" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="location" class="form-label">Location</label>
+                    <input type="text" id="location" name="location" class="form-input" placeholder="e.g., Dr. Smith Office" value="{% if event %}{{ event.location }}{% endif %}" maxlength="255">
+                </div>
+
+                <div class="form-group">
+                    <label for="description" class="form-label">Notes</label>
+                    <textarea id="description" name="description" class="form-input" rows="3" placeholder="Any additional details...">{% if event %}{{ event.description }}{% endif %}</textarea>
+                </div>
+            </div>
+
+            {% if is_edit %}
+            <!-- Attachments Section (only for existing events) -->
+            <div class="form-section attachments-section">
+                <h3 class="form-section-title">📎 Attachments</h3>
+                
+                <!-- Existing Attachments -->
+                <div id="existing-attachments" class="attachments-list">
+                    {% for attachment in event.attachments.all %}
+                    <div class="attachment-item" data-id="{{ attachment.id }}">
+                        <span class="attachment-icon">{{ attachment.file_icon }}</span>
+                        <div class="attachment-info">
+                            <a href="{{ attachment.file.url }}" target="_blank" class="attachment-name">{{ attachment.original_filename }}</a>
+                            <span class="attachment-size">{{ attachment.human_file_size }}</span>
+                        </div>
+                        <button type="button" class="attachment-delete" data-url="{% url 'delete_attachment' client_id=client.id event_id=event.id attachment_id=attachment.id %}">&times;</button>
+                    </div>
+                    {% empty %}
+                    <p class="no-attachments">No attachments yet.</p>
+                    {% endfor %}
+                </div>
+                
+                <!-- Upload Zone -->
+                <div class="upload-zone" id="upload-zone">
+                    <div class="upload-zone-content">
+                        <span class="upload-icon">📤</span>
+                        <p>Drag & drop files here or <span class="upload-browse" id="browse-trigger">browse</span></p>
+                        <p class="upload-hint">Max 50MB per file. Select multiple files at once.</p>
+                    </div>
+                    <input type="file" id="file-input" multiple hidden>
+                </div>
+                
+                <!-- Upload Progress -->
+                <div id="upload-progress" class="upload-progress" style="display: none;">
+                    <div class="upload-progress-bar"></div>
+                    <span class="upload-progress-text">Uploading...</span>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="form-actions">
+                <a href="{% url 'client_calendar' client_id=client.id %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">{% if is_edit %}Update{% else %}Create{% endif %} Event</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.event-form-card { max-width: 600px; }
+.form-section { margin-bottom: 1.5rem; }
+.form-section-title { font-size: 1rem; font-weight: 600; color: #1f2937; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e5e7eb; }
+.form-group { margin-bottom: 1rem; }
+.form-label { display: block; font-size: 0.875rem; font-weight: 500; color: #6b7280; margin-bottom: 0.375rem; }
+.form-label.required::after { content: " *"; color: #ef4444; }
+.form-input { width: 100%; padding: 0.625rem 0.875rem; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 1rem; }
+.form-input:focus { outline: none; border-color: #3b82f6; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.form-actions { display: flex; gap: 1rem; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid #e5e7eb; }
+
+/* Attachments */
+.attachments-section { background: #f9fafb; padding: 1rem; border-radius: 8px; }
+.attachments-list { margin-bottom: 1rem; }
+.attachment-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: white; border-radius: 6px; margin-bottom: 0.5rem; border: 1px solid #e5e7eb; }
+.attachment-icon { font-size: 1.5rem; }
+.attachment-info { flex: 1; min-width: 0; }
+.attachment-name { display: block; font-weight: 500; color: #3b82f6; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.attachment-name:hover { text-decoration: underline; }
+.attachment-size { font-size: 0.75rem; color: #9ca3af; }
+.attachment-delete { background: #fee2e2; border: none; color: #dc2626; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 1rem; line-height: 1; }
+.attachment-delete:hover { background: #fecaca; }
+.no-attachments { color: #9ca3af; font-style: italic; margin: 0; }
+
+/* Upload Zone */
+.upload-zone { border: 2px dashed #d1d5db; border-radius: 8px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.2s; }
+.upload-zone:hover, .upload-zone.dragover { border-color: #3b82f6; background: #eff6ff; }
+.upload-zone-content p { margin: 0.5rem 0; color: #6b7280; }
+.upload-icon { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
+.upload-browse { color: #3b82f6; cursor: pointer; font-weight: 500; }
+.upload-browse:hover { text-decoration: underline; }
+.upload-hint { font-size: 0.75rem; color: #9ca3af; }
+
+/* Upload Progress */
+.upload-progress { background: #f3f4f6; border-radius: 6px; padding: 0.75rem; margin-top: 1rem; }
+.upload-progress-bar { height: 4px; background: #3b82f6; border-radius: 2px; width: 0%; transition: width 0.3s; }
+.upload-progress-text { font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem; display: block; }
+
+@media (max-width: 640px) {
+    .form-row { grid-template-columns: 1fr; }
+    .form-actions { flex-direction: column-reverse; }
+    .form-actions .btn { width: 100%; }
+}
+</style>
+
+{% if is_edit %}
+<script>
+(function() {
+    var uploadZone = document.getElementById('upload-zone');
+    var fileInput = document.getElementById('file-input');
+    var browseTrigger = document.getElementById('browse-trigger');
+    var existingAttachments = document.getElementById('existing-attachments');
+    var uploadProgress = document.getElementById('upload-progress');
+    var progressBar = uploadProgress.querySelector('.upload-progress-bar');
+    var progressText = uploadProgress.querySelector('.upload-progress-text');
+    
+    var uploadUrl = '{% url "upload_attachment" client_id=client.id event_id=event.id %}';
+    
+    function getCsrfToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]').value;
+    }
+    
+    // Handle browse click - stop propagation to prevent double trigger
+    browseTrigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        fileInput.click();
+    });
+    
+    // Drag and drop
+    uploadZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('dragover');
+    });
+    
+    uploadZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+    });
+    
+    uploadZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files);
+    });
+    
+    // Click on zone (but not on browse trigger)
+    uploadZone.addEventListener('click', function(e) {
+        if (e.target !== browseTrigger) {
+            fileInput.click();
+        }
+    });
+    
+    fileInput.addEventListener('change', function() {
+        handleFiles(this.files);
+        this.value = '';
+    });
+    
+    function handleFiles(files) {
+        if (!files.length) return;
+        
+        var formData = new FormData();
+        for (var i = 0; i < files.length; i++) {
+            formData.append('files', files[i]);
+        }
+        
+        uploadProgress.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressText.textContent = 'Uploading ' + files.length + ' file(s)...';
+        
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', uploadUrl, true);
+        xhr.setRequestHeader('X-CSRFToken', getCsrfToken());
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        
+        xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+                var pct = Math.round((e.loaded / e.total) * 100);
+                progressBar.style.width = pct + '%';
+                progressText.textContent = 'Uploading... ' + pct + '%';
+            }
+        };
+        
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                var data = JSON.parse(xhr.responseText);
+                if (data.uploaded && data.uploaded.length) {
+                    // Remove "no attachments" message
+                    var noMsg = existingAttachments.querySelector('.no-attachments');
+                    if (noMsg) noMsg.remove();
+                    
+                    // Add uploaded files
+                    for (var i = 0; i < data.uploaded.length; i++) {
+                        var file = data.uploaded[i];
+                        var div = document.createElement('div');
+                        div.className = 'attachment-item';
+                        div.dataset.id = file.id;
+                        div.innerHTML = '<span class="attachment-icon">' + file.icon + '</span>' +
+                            '<div class="attachment-info">' +
+                            '<a href="' + file.url + '" target="_blank" class="attachment-name">' + file.name + '</a>' +
+                            '<span class="attachment-size">' + file.size + '</span>' +
+                            '</div>' +
+                            '<button type="button" class="attachment-delete" data-url="' + file.delete_url + '">&times;</button>';
+                        existingAttachments.appendChild(div);
+                    }
+                }
+                if (data.errors && data.errors.length) {
+                    alert('Some files could not be uploaded:\n' + data.errors.join('\n'));
+                }
+                progressText.textContent = 'Upload complete!';
+                setTimeout(function() {
+                    uploadProgress.style.display = 'none';
+                }, 2000);
+            } else {
+                progressText.textContent = 'Upload failed. Please try again.';
+            }
+        };
+        
+        xhr.onerror = function() {
+            progressText.textContent = 'Upload failed. Please try again.';
+        };
+        
+        xhr.send(formData);
+    }
+    
+    // Delete attachment
+    existingAttachments.addEventListener('click', function(e) {
+        if (e.target.classList.contains('attachment-delete')) {
+            if (!confirm('Delete this attachment?')) return;
+            
+            var btn = e.target;
+            var item = btn.closest('.attachment-item');
+            var url = btn.dataset.url;
+            
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader('X-CSRFToken', getCsrfToken());
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.success) {
+                        item.remove();
+                        if (!existingAttachments.querySelector('.attachment-item')) {
+                            existingAttachments.innerHTML = '<p class="no-attachments">No attachments yet.</p>';
+                        }
+                    }
+                }
+            };
+            xhr.send();
+        }
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

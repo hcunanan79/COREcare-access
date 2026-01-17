@@ -1,0 +1,671 @@
+{% extends "base.html" %}
+
+{% block title %}{{ client.first_name }}'s Calendar{% endblock %}
+
+{% block content %}
+<div class="main-content">
+
+    <!-- Breadcrumb -->
+    <a href="{% url 'family_home' %}" class="back-link">
+        &larr; Back to My Clients
+    </a>
+
+    <div class="client-header">
+        <div>
+            <h1>{{ client.first_name }} {{ client.last_name }}</h1>
+            <p class="client-header-subtitle">📅 Calendar & Schedule</p>
+
+            {% if can_add_events %}
+            <a href="{% url 'create_event' client_id=client.id %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Event
+            </a>
+            {% endif %}
+
+
+            <!-- Messages -->
+            {% if messages %}
+            <div class="message-container" style="margin-bottom: 1rem;">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+
+                    {% endfor %}
+
+                    {% endif %}
+
+                    <!-- Date Navigation -->
+                    <div class="calendar-nav">
+                        <form method="get" class="calendar-nav-form">
+                            <label>
+                                From:
+                                <input type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}"
+                                    class="form-input">
+                            </label>
+                            <label>
+                                To:
+                                <input type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}"
+                                    class="form-input">
+                            </label>
+                            <button type="submit" class="btn btn-secondary">Update</button>
+                        </form>
+
+
+                        <!-- Calendar Legend -->
+                        <div class="calendar-legend">
+                            <span class="legend-item">
+                                <span class="legend-color schedule-item-shift"></span>
+                                👤 Caregiver Shifts
+                            </span>
+                            <span class="legend-item">
+                                <span class="legend-color schedule-item-event"></span>
+                                📌 Family Events
+                            </span>
+
+
+                            <!-- List View (Mobile-First) -->
+                            <div class="calendar-list-view">
+        {% if schedule_by_date %}
+        {% for date, items in schedule_by_date %}
+        <div class="calendar-day-group">
+            <div class="calendar-day-header">
+                <span class="calendar-day-name">{{ date|date:"l" }}</span>
+                <span class="calendar-day-date">{{ date|date:"M d, Y" }}</span>
+                {% if date == today %}
+                <span class="calendar-today-badge">Today</span>
+                {% endif %}
+            </div>
+
+            {% for item in items %}
+            <div class="schedule-item {{ item.color_class }}">
+                <div class="schedule-item-icon">{{ item.icon }}</div>
+                <div class="schedule-item-content">
+                    <div class="schedule-item-title">
+                        {{ item.title }}
+                        {% if item.details.attachment_count %}
+                        <span class="attachment-badge" title="{{ item.details.attachment_count }} file(s)">📎{{ item.details.attachment_count }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="schedule-item-time">
+                        {{ item.start_time|date:"g:i A" }} - {{ item.end_time|date:"g:i A" }}
+                    </div>
+                    {% if item.location %}
+                    <div class="schedule-item-location">
+                        <a href="https://maps.google.com/?q={{ item.location|urlencode }}" target="_blank" rel="noopener" class="location-link" title="Open in Maps">
+                            📍 {{ item.location }}
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% if item.details.description %}
+                    <div class="schedule-item-description">
+                        {{ item.details.description|truncatewords:20 }}
+                    </div>
+                    {% endif %}
+                    {% if item.details.attachments %}
+                    <div class="schedule-item-attachments">
+                        {% for file in item.details.attachments %}
+                        <a href="{{ file.url }}" target="_blank" class="attachment-link" title="{{ file.name }} ({{ file.size }})">
+                            <span class="attachment-link-icon">{{ file.icon }}</span> {{ file.name|truncatechars:25 }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% if item.details.created_by %}
+                    <div class="schedule-item-meta">
+                        Added by {{ item.details.created_by }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% if item.type == 'event' and can_add_events %}
+                <div class="schedule-item-actions">
+                    <a href="{% url 'edit_event' client_id=client.id event_id=item.id %}" class="btn btn-small btn-secondary" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <button type="button" class="btn btn-small btn-danger delete-event-btn" title="Delete" data-event-id="{{ item.id }}" data-event-title="{{ item.title }}" data-delete-url="{% url 'delete_event' client_id=client.id event_id=item.id %}" data-restore-url="{% url 'restore_event' client_id=client.id event_id=item.id %}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📅</div>
+            <h3>No Events Scheduled</h3>
+            <p>There are no shifts or events scheduled for this time period.</p>
+            {% if can_add_events %}
+            <a href="{% url 'create_event' client_id=client.id %}" class="btn btn-primary">
+                Add Your First Event
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+                                                                                    /* Calendar-specific styles */
+                                                                                    .calendar-nav {
+                                                                                        margin-bottom: 1.5rem;
+                                                                                    }
+
+                                                                                    .calendar-nav-form {
+                                                                                        display: flex;
+                                                                                        flex-wrap: wrap;
+                                                                                        gap: 1rem;
+                                                                                        align-items: flex-end;
+                                                                                    }
+
+                                                                                    .calendar-nav-form label {
+                                                                                        display: flex;
+                                                                                        flex-direction: column;
+                                                                                        gap: 0.25rem;
+                                                                                        font-size: 0.875rem;
+                                                                                        color: var(--text-secondary, #6b7280);
+                                                                                    }
+
+                                                                                    .calendar-nav-form .form-input {
+                                                                                        padding: 0.5rem;
+                                                                                        border: 1px solid var(--border-color, #e5e7eb);
+                                                                                        border-radius: 6px;
+                                                                                    }
+
+                                                                                    .calendar-legend {
+                                                                                        display: flex;
+                                                                                        flex-wrap: wrap;
+                                                                                        gap: 1.5rem;
+                                                                                        margin-bottom: 1.5rem;
+                                                                                        padding: 0.75rem 1rem;
+                                                                                        background: var(--bg-secondary, #f9fafb);
+                                                                                        border-radius: 8px;
+                                                                                    }
+
+                                                                                    .legend-item {
+                                                                                        display: flex;
+                                                                                        align-items: center;
+                                                                                        gap: 0.5rem;
+                                                                                        font-size: 0.875rem;
+                                                                                    }
+
+                                                                                    .legend-color {
+                                                                                        width: 12px;
+                                                                                        height: 12px;
+                                                                                        border-radius: 3px;
+                                                                                    }
+
+                                                                                    .calendar-day-group {
+                                                                                        margin-bottom: 1.5rem;
+                                                                                    }
+
+                                                                                    .calendar-day-header {
+                                                                                        display: flex;
+                                                                                        align-items: center;
+                                                                                        gap: 0.75rem;
+                                                                                        padding: 0.75rem 0;
+                                                                                        border-bottom: 2px solid var(--primary-color, #3b82f6);
+                                                                                        margin-bottom: 0.75rem;
+                                                                                    }
+
+                                                                                    .calendar-day-name {
+                                                                                        font-weight: 600;
+                                                                                        color: var(--text-primary, #1f2937);
+                                                                                    }
+
+                                                                                    .calendar-day-date {
+                                                                                        color: var(--text-secondary, #6b7280);
+                                                                                        font-size: 0.875rem;
+                                                                                    }
+
+                                                                                    .calendar-today-badge {
+                                                                                        background: var(--primary-color, #3b82f6);
+                                                                                        color: white;
+                                                                                        padding: 0.125rem 0.5rem;
+                                                                                        border-radius: 4px;
+                                                                                        font-size: 0.75rem;
+                                                                                        font-weight: 600;
+                                                                                    }
+
+                                                                                    .schedule-item {
+                                                                                        display: flex;
+                                                                                        align-items: flex-start;
+                                                                                        gap: 1rem;
+                                                                                        padding: 1rem;
+                                                                                        background: white;
+                                                                                        border-radius: 8px;
+                                                                                        margin-bottom: 0.5rem;
+                                                                                        border-left: 4px solid transparent;
+                                                                                        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                                                                                        transition: transform 0.15s ease;
+                                                                                    }
+
+                                                                                    .schedule-item:hover {
+                                                                                        transform: translateX(4px);
+                                                                                    }
+
+                                                                                    .schedule-item-shift {
+                                                                                        border-left-color: #3b82f6;
+                                                                                        background: linear-gradient(135deg, #eff6ff 0%, white 100%);
+                                                                                    }
+
+                                                                                    .schedule-item-event {
+                                                                                        border-left-color: #10b981;
+                                                                                        background: linear-gradient(135deg, #ecfdf5 0%, white 100%);
+                                                                                    }
+
+                                                                                    .schedule-item-medical {
+                                                                                        border-left-color: #ef4444;
+                                                                                        background: linear-gradient(135deg, #fef2f2 0%, white 100%);
+                                                                                    }
+
+                                                                                    .schedule-item-therapy {
+                                                                                        border-left-color: #8b5cf6;
+                                                                                        background: linear-gradient(135deg, #f5f3ff 0%, white 100%);
+                                                                                    }
+
+                                                                                    .schedule-item-icon {
+                                                                                        font-size: 1.5rem;
+                                                                                        flex-shrink: 0;
+                                                                                    }
+
+                                                                                    .schedule-item-content {
+                                                                                        flex: 1;
+                                                                                        min-width: 0;
+                                                                                    }
+
+                                                                                    .schedule-item-title {
+                                                                                        display: flex;
+                                                                                        align-items: center;
+                                                                                        gap: 0.5rem;
+                                                                                        flex-wrap: wrap;
+                                                                                        font-weight: 600;
+                                                                                        color: var(--text-primary, #1f2937);
+                                                                                        margin-bottom: 0.25rem;
+                                                                                    }
+
+                                                                                    .attachment-badge {
+                                                                                        display: inline-flex;
+                                                                                        align-items: center;
+                                                                                        gap: 0.125rem;
+                                                                                        background: #e0e7ff;
+                                                                                        color: #4f46e5;
+                                                                                        padding: 0.125rem 0.375rem;
+                                                                                        border-radius: 4px;
+                                                                                        font-size: 0.75rem;
+                                                                                        font-weight: 500;
+                                                                                    }
+
+                                                                                    .schedule-item-time {
+                                                                                        font-size: 0.875rem;
+                                                                                        color: var(--text-secondary, #6b7280);
+                                                                                    }
+
+                                                                                    .schedule-item-location {
+                                                                                        font-size: 0.875rem;
+                                                                                        margin-top: 0.25rem;
+                                                                                    }
+
+                                                                                    .location-link {
+                                                                                        color: #2563eb;
+                                                                                        text-decoration: none;
+                                                                                        display: inline-flex;
+                                                                                        align-items: center;
+                                                                                        gap: 0.25rem;
+                                                                                    }
+
+                                                                                    .location-link:hover {
+                                                                                        text-decoration: underline;
+                                                                                        color: #1d4ed8;
+                                                                                    }
+
+                                                                                    .schedule-item-description {
+                                                                                        font-size: 0.875rem;
+                                                                                        color: var(--text-secondary, #6b7280);
+                                                                                        margin-top: 0.5rem;
+                                                                                        font-style: italic;
+                                                                                    }
+
+                                                                                    .schedule-item-attachments {
+                                                                                        margin-top: 0.5rem;
+                                                                                        display: flex;
+                                                                                        flex-wrap: wrap;
+                                                                                        gap: 0.5rem;
+                                                                                    }
+
+                                                                                    .attachment-link {
+                                                                                        display: inline-flex;
+                                                                                        align-items: center;
+                                                                                        gap: 0.25rem;
+                                                                                        font-size: 0.75rem;
+                                                                                        padding: 0.125rem 0.375rem;
+                                                                                        border: 1px solid #e5e7eb;
+                                                                                        border-radius: 999px;
+                                                                                        color: #4b5563;
+                                                                                        text-decoration: none;
+                                                                                        background: #f9fafb;
+                                                                                    }
+
+                                                                                    .attachment-link:hover {
+                                                                                        background: #f3f4f6;
+                                                                                        border-color: #d1d5db;
+                                                                                        color: #1f2937;
+                                                                                    }
+
+                                                                                    .attachment-link-icon {
+                                                                                        font-size: 0.875rem;
+                                                                                    }
+
+                                                                                    .schedule-item-meta {
+                                                                                        font-size: 0.75rem;
+                                                                                        color: var(--text-muted, #9ca3af);
+                                                                                        margin-top: 0.5rem;
+                                                                                    }
+
+                                                                                    .schedule-item-actions {
+                                                                                        display: flex;
+                                                                                        gap: 0.5rem;
+                                                                                        flex-shrink: 0;
+                                                                                    }
+
+                                                                                    .btn-small {
+                                                                                        padding: 0.375rem 0.625rem;
+                                                                                        font-size: 0.875rem;
+                                                                                    }
+
+                                                                                    .btn-danger {
+                                                                                        background: #ef4444;
+                                                                                        color: white;
+                                                                                    }
+
+                                                                                    .btn-danger:hover {
+                                                                                        background: #dc2626;
+                                                                                    }
+
+                                                                                    .empty-state {
+                                                                                        text-align: center;
+                                                                                        padding: 3rem 1.5rem;
+                                                                                        background: var(--bg-secondary, #f9fafb);
+                                                                                        border-radius: 12px;
+                                                                                    }
+
+                                                                                    .empty-state-icon {
+                                                                                        font-size: 3rem;
+                                                                                        margin-bottom: 1rem;
+                                                                                    }
+
+                                                                                    .empty-state h3 {
+                                                                                        margin-bottom: 0.5rem;
+                                                                                        color: var(--text-primary, #1f2937);
+                                                                                    }
+
+                                                                                    .empty-state p {
+                                                                                        color: var(--text-secondary, #6b7280);
+                                                                                        margin-bottom: 1.5rem;
+                                                                                    }
+
+                                                                                    .alert {
+                                                                                        padding: 0.75rem 1rem;
+                                                                                        border-radius: 6px;
+                                                                                        margin-bottom: 0.5rem;
+                                                                                    }
+
+                                                                                    .alert-success {
+                                                                                        background: #ecfdf5;
+                                                                                        color: #047857;
+                                                                                        border: 1px solid #a7f3d0;
+                                                                                    }
+
+                                                                                    .alert-error {
+                                                                                        background: #fef2f2;
+                                                                                        color: #b91c1c;
+                                                                                        border: 1px solid #fecaca;
+                                                                                    }
+
+                                                                                    /* Responsive */
+                                                                                    @media (max-width: 640px) {
+                                                                                        .calendar-nav-form {
+                                                                                            flex-direction: column;
+                                                                                        }
+
+                                                                                        .calendar-nav-form label {
+                                                                                            width: 100%;
+                                                                                        }
+
+                                                                                        .calendar-nav-form .form-input {
+                                                                                            width: 100%;
+                                                                                        }
+
+                                                                                        .schedule-item {
+                                                                                            flex-wrap: wrap;
+                                                                                        }
+
+                                                                                        .schedule-item-actions {
+                                                                                            width: 100%;
+                                                                                            margin-top: 0.75rem;
+                                                                                            padding-top: 0.75rem;
+                                                                                            border-top: 1px solid var(--border-color, #e5e7eb);
+                                                                                            justify-content: flex-end;
+                                                                                        }
+                                                                                    }
+                                                                                </style>
+
+                                                                                <!-- Undo Toast Container -->
+                                                                                <div id="undo-toast" class="undo-toast">
+                                                                                    <span
+                                                                                        class="undo-toast-message"></span>
+                                                                                    <button type="button"
+                                                                                        class="undo-toast-btn">Undo</button>
+                                                                                    <div class="undo-toast-progress">
+
+
+                                                                                        <style>
+                                                                                            /* Undo Toast Styles */
+                                                                                            .undo-toast {
+                                                                                                position: fixed;
+                                                                                                bottom: -100px;
+                                                                                                left: 50%;
+                                                                                                transform: translateX(-50%);
+                                                                                                background: #1f2937;
+                                                                                                color: white;
+                                                                                                padding: 0.875rem 1.25rem;
+                                                                                                border-radius: 8px;
+                                                                                                display: flex;
+                                                                                                align-items: center;
+                                                                                                gap: 1rem;
+                                                                                                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                                                                                                z-index: 1000;
+                                                                                                transition: bottom 0.3s ease;
+                                                                                                min-width: 300px;
+                                                                                                max-width: 90vw;
+                                                                                            }
+
+                                                                                            .undo-toast.visible {
+                                                                                                bottom: 24px;
+                                                                                            }
+
+                                                                                            .undo-toast-message {
+                                                                                                flex: 1;
+                                                                                                font-size: 0.9375rem;
+                                                                                            }
+
+                                                                                            .undo-toast-btn {
+                                                                                                background: transparent;
+                                                                                                border: none;
+                                                                                                color: #60a5fa;
+                                                                                                font-weight: 600;
+                                                                                                cursor: pointer;
+                                                                                                padding: 0.375rem 0.75rem;
+                                                                                                border-radius: 4px;
+                                                                                                font-size: 0.9375rem;
+                                                                                                transition: background 0.15s ease;
+                                                                                            }
+
+                                                                                            .undo-toast-btn:hover {
+                                                                                                background: rgba(96, 165, 250, 0.15);
+                                                                                            }
+
+                                                                                            .undo-toast-progress {
+                                                                                                position: absolute;
+                                                                                                bottom: 0;
+                                                                                                left: 0;
+                                                                                                height: 3px;
+                                                                                                background: #60a5fa;
+                                                                                                border-radius: 0 0 8px 8px;
+                                                                                                width: 100%;
+                                                                                                transform-origin: left;
+                                                                                                animation: none;
+                                                                                            }
+
+                                                                                            .undo-toast.visible .undo-toast-progress {
+                                                                                                animation: shrink-progress 10s linear forwards;
+                                                                                            }
+
+                                                                                            @keyframes shrink-progress {
+                                                                                                from {
+                                                                                                    transform: scaleX(1);
+                                                                                                }
+
+                                                                                                to {
+                                                                                                    transform: scaleX(0);
+                                                                                                }
+                                                                                            }
+                                                                                        </style>
+
+                                                                                        <script>
+                                                                                            (function () {
+                                                                                                const toast = document.getElementById('undo-toast');
+                                                                                                const toastMessage = toast.querySelector('.undo-toast-message');
+                                                                                                const toastBtn = toast.querySelector('.undo-toast-btn');
+                                                                                                const toastProgress = toast.querySelector('.undo-toast-progress');
+
+                                                                                                let undoTimeout = null;
+                                                                                                let currentRestoreUrl = null;
+                                                                                                let deletedItemElement = null;
+
+                                                                                                // Get CSRF token
+                                                                                                function getCsrfToken() {
+                                                                                                    return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+                                                                                                        document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
+                                                                                                }
+
+                                                                                                // Show undo toast
+                                                                                                function showUndoToast(message, restoreUrl, itemElement) {
+                                                                                                    // Clear any existing timeout
+                                                                                                    if (undoTimeout) {
+                                                                                                        clearTimeout(undoTimeout);
+                                                                                                    }
+
+                                                                                                    currentRestoreUrl = restoreUrl;
+                                                                                                    deletedItemElement = itemElement;
+                                                                                                    toastMessage.textContent = message;
+
+                                                                                                    // Reset and show
+                                                                                                    toast.classList.remove('visible');
+                                                                                                    toastProgress.style.animation = 'none';
+
+                                                                                                    // Force reflow
+                                                                                                    void toast.offsetWidth;
+
+                                                                                                    toast.classList.add('visible');
+                                                                                                    toastProgress.style.animation = '';
+
+                                                                                                    // Auto-hide after 10 seconds
+                                                                                                    undoTimeout = setTimeout(function () {
+                                                                                                        hideUndoToast(true);
+                                                                                                    }, 10000);
+                                                                                                }
+
+                                                                                                // Hide undo toast
+                                                                                                function hideUndoToast(permanent) {
+                                                                                                    toast.classList.remove('visible');
+                                                                                                    if (undoTimeout) {
+                                                                                                        clearTimeout(undoTimeout);
+                                                                                                        undoTimeout = null;
+                                                                                                    }
+                                                                                                    if (permanent && deletedItemElement) {
+                                                                                                        deletedItemElement.remove();
+                                                                                                        deletedItemElement = null;
+                                                                                                    }
+                                                                                                }
+
+                                                                                                // Handle undo click
+                                                                                                toastBtn.addEventListener('click', function () {
+                                                                                                    if (!currentRestoreUrl) return;
+
+                                                                                                    fetch(currentRestoreUrl, {
+                                                                                                        method: 'POST',
+                                                                                                        headers: {
+                                                                                                            'X-CSRFToken': getCsrfToken(),
+                                                                                                            'X-Requested-With': 'XMLHttpRequest',
+                                                                                                        }
+                                                                                                    })
+                                                                                                        .then(function (response) { return response.json(); })
+                                                                                                        .then(function (data) {
+                                                                                                            if (data.success) {
+                                                                                                                // Restore the item visually - reset ALL styles
+                                                                                                                if (deletedItemElement) {
+                                                                                                                    deletedItemElement.style.display = '';
+                                                                                                                    deletedItemElement.style.opacity = '1';
+                                                                                                                    deletedItemElement.style.transform = '';
+                                                                                                                    deletedItemElement.style.transition = '';
+                                                                                                                    deletedItemElement = null;
+                                                                                                                }
+                                                                                                                hideUndoToast(false);
+                                                                                                            }
+                                                                                                        })
+                                                                                                        .catch(function (err) {
+                                                                                                            console.error('Undo failed:', err);
+                                                                                                            hideUndoToast(false);
+                                                                                                            // Fallback: reload page
+                                                                                                            window.location.reload();
+                                                                                                        });
+                                                                                                });
+
+                                                                                                // Handle delete button clicks
+                                                                                                document.querySelectorAll('.delete-event-btn').forEach(function (btn) {
+                                                                                                    btn.addEventListener('click', function (e) {
+                                                                                                        e.preventDefault();
+
+                                                                                                        const eventId = this.dataset.eventId;
+                                                                                                        const eventTitle = this.dataset.eventTitle;
+                                                                                                        const deleteUrl = this.dataset.deleteUrl;
+                                                                                                        const restoreUrl = this.dataset.restoreUrl;
+                                                                                                        const scheduleItem = this.closest('.schedule-item');
+
+                                                                                                        // Immediately hide the item visually
+                                                                                                        scheduleItem.style.opacity = '0.5';
+
+                                                                                                        // Send delete request
+                                                                                                        fetch(deleteUrl, {
+                                                                                                            method: 'POST',
+                                                                                                            headers: {
+                                                                                                                'X-CSRFToken': getCsrfToken(),
+                                                                                                                'X-Requested-With': 'XMLHttpRequest',
+                                                                                                            }
+                                                                                                        })
+                                                                                                            .then(function (response) { return response.json(); })
+                                                                                                            .then(function (data) {
+                                                                                                                if (data.success) {
+                                                                                                                    // Slide out animation
+                                                                                                                    scheduleItem.style.transition = 'all 0.3s ease';
+                                                                                                                    scheduleItem.style.transform = 'translateX(100%)';
+                                                                                                                    scheduleItem.style.opacity = '0';
+
+                                                                                                                    setTimeout(function () {
+                                                                                                                        scheduleItem.style.display = 'none';
+                                                                                                                    }, 300);
+
+                                                                                                                    // Show undo toast
+                                                                                                                    showUndoToast('"' + eventTitle + '" deleted', restoreUrl, scheduleItem);
+                                                                                                                }
+                                                                                                            })
+                                                                                                            .catch(function (err) {
+                                                                                                                console.error('Delete failed:', err);
+                                                                                                                scheduleItem.style.opacity = '1';
+                                                                                                                alert('Failed to delete event. Please try again.');
+                                                                                                            });
+                                                                                                    });
+                                                                                                });
+                                                                                            })();
+                                                                                        </script>
+                                                                                        {% endblock %}

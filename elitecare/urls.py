@@ -13,6 +13,7 @@ urlpatterns = [
     path("caregiver/", include("caregiver_portal.urls")),
     path("admin/", admin.site.urls),
     path("schedule/", include("clients.urls")),
+    path("clients/", include("clients.urls")),  # Issue #40: Client calendar routes
     path("portal/", include("portal.urls")),
     
     # Issue #16: Service Worker for PWA (must be at root scope)
@@ -22,8 +23,7 @@ urlpatterns = [
 from django.conf import settings
 from django.conf.urls.static import static
 
-from django.conf import settings
-from django.conf.urls.static import static
-
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
