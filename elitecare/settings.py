@@ -89,7 +89,14 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Media files (uploads)
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+
+if "RENDER" in os.environ:
+    # Render persistent disk mount path
+    # We use a 'media' subdirectory so the root of the disk is kept clean
+    MEDIA_ROOT = Path("/var/data/media")
+else:
+    # Local development
+    MEDIA_ROOT = BASE_DIR / "media"
 
 # File upload settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50MB
