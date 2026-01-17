@@ -48,6 +48,13 @@ body {
   color: var(--text);
   line-height: 1.6;
   min-height: 100vh;
+  /* Prevent auto-zoom on mobile */
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Safe area insets for notched devices */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 /* ====== HEADER ====== */
@@ -123,8 +130,16 @@ body {
 /* ====== MAIN CONTENT ====== */
 .main-content {
   max-width: 960px;
-  margin: 0 auto;
-  padding: 32px 24px;
+  margin: 0;  /* Mobile-first: left-align by default */
+  padding: 20px 16px;  /* Reduced padding for mobile */
+}
+
+/* Re-center only on desktop */
+@media (min-width: 961px) {
+  .main-content {
+    margin: 0 auto;
+    padding: 32px 24px;  /* Larger padding on desktop */
+  }
 }
 
 .page-title {
@@ -258,6 +273,9 @@ body {
   border: none;
   cursor: pointer;
   transition: all 0.2s;
+  /* Reduce tap delay on mobile */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btn-primary {
@@ -304,6 +322,8 @@ body {
   border-radius: 8px;
   font-size: 1rem;
   transition: all 0.2s;
+  /* Improve touch input on mobile */
+  touch-action: manipulation;
 }
 
 .form-input:focus {
@@ -514,6 +534,8 @@ body {
   flex-direction: column;
   gap: 12px;
   margin-bottom: 20px;
+  /* Smooth momentum scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
 }
 
 .message {

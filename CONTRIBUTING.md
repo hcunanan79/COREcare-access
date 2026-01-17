@@ -101,6 +101,91 @@ main (production)
 - Mobile responsiveness requirements
 - Accessibility standards
 
+### Mobile Testing Requirements
+
+**Critical**: 70% of caregivers and 80% of family members access the portal via mobile. All UI changes MUST be tested on mobile devices before deployment.
+
+#### Required Mobile Tests
+
+Before submitting any PR that affects UI/templates/CSS:
+
+- [ ] **iPhone Safari** (iOS 15, 16, or 17) - Test in portrait and landscape
+- [ ] **Android Chrome** (latest version) - Test on physical device or emulator
+- [ ] **Content Alignment**: Verify content is left-aligned on mobile (<961px), centered on desktop (≥961px)
+- [ ] **No Horizontal Scroll**: Test at 320px width (iPhone SE) - no horizontal scrollbar
+- [ ] **Touch Targets**: All buttons/links are ≥44px × 44px (tap-friendly)
+- [ ] **Form Inputs**: Font size ≥16px to prevent auto-zoom on iOS
+- [ ] **Safe Area**: Content respects iPhone notch/Dynamic Island (not obscured)
+- [ ] **Viewport Meta Tag**: `viewport-fit=cover` is present in `<head>`
+
+#### Mobile Testing Tools
+
+**Real Devices (Preferred)**:
+- Borrow team iPhones/Android phones for testing
+- Test on your personal phone
+
+**Chrome DevTools Device Emulation**:
+1. Open Chrome DevTools (F12)
+2. Click "Toggle Device Toolbar" (Ctrl+Shift+M / Cmd+Shift+M)
+3. Test these viewports:
+   - **320px** (iPhone SE) - Critical minimum width
+   - **375px** (iPhone 12/13) - Most common
+   - **393px** (iPhone 14 Pro) - Dynamic Island
+   - **428px** (iPhone 14 Pro Max) - Large phone
+   - **768px** (iPad) - Tablet breakpoint
+   - **1024px** (iPad Pro landscape) - Desktop breakpoint
+
+**Safari Responsive Design Mode** (macOS):
+1. Open Safari Developer Tools (Cmd+Option+I)
+2. Click "Responsive Design Mode" icon
+3. Test iPhone 14 Pro, iPhone SE, iPad
+
+#### Mobile-First CSS Pattern
+
+**Always use mobile-first responsive design**:
+
+```css
+/* ❌ WRONG: Desktop-first */
+.container {
+  margin: 0 auto;  /* Centers on all screens */
+}
+
+@media (max-width: 600px) {
+  .container {
+    margin: 0;  /* Tries to fix mobile */
+  }
+}
+
+/* ✅ CORRECT: Mobile-first */
+.container {
+  margin: 0;  /* Left-align by default (mobile) */
+}
+
+@media (min-width: 961px) {
+  .container {
+    margin: 0 auto;  /* Center only on desktop */
+  }
+}
+```
+
+**Reference**: See [Mobile Responsiveness](docs/DESIGN_SYSTEM.md#mobile-responsiveness) in the design system for full guidelines.
+
+#### Common Mobile Issues to Avoid
+
+❌ **Don't**:
+- Use `margin: 0 auto` without a desktop media query
+- Set font sizes <16px on form inputs (triggers iOS zoom)
+- Forget `touch-action: manipulation` on buttons
+- Use `:hover` without `:active` states
+- Forget `viewport-fit=cover` meta tag
+
+✅ **Do**:
+- Test on real iPhones and Android devices
+- Start with mobile styles, progressively enhance for desktop
+- Use `touch-action: manipulation` on all interactive elements
+- Verify safe-area-inset padding on notched devices
+- Check WCAG reflow at 320px width
+
 ## Project Structure
 
 ```

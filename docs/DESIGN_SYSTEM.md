@@ -475,13 +475,127 @@ If creating a reusable component (e.g., a modal, card variant):
 
 ## Mobile Responsiveness
 
-The design system is mobile-first. Breakpoints are defined at:
+The design system is **mobile-first** as a core architectural principle. 70% of caregivers and 80% of family members access the portal via mobile devices, making mobile the primary experience.
 
-| Breakpoint | Width | Use Case |
-|-----------|-------|----------|
-| **Mobile** | 320px-767px | Default, optimized for small screens |
-| **Tablet** | 768px-1023px | Medium screens, flexible layouts |
-| **Desktop** | 1024px+ | Large screens, multi-column layouts |
+### Mobile-First Responsive Strategy
+
+**Philosophy**: Start with mobile baseline styles, progressively enhance for larger screens.
+
+```css
+/* ❌ WRONG: Desktop-first (anti-pattern) */
+.container {
+  max-width: 960px;
+  margin: 0 auto;  /* Centers on all devices */
+  padding: 32px 24px;
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 20px 16px;  /* Adjusts but still centered */
+  }
+}
+
+/* ✅ CORRECT: Mobile-first */
+.container {
+  max-width: 960px;
+  margin: 0;  /* Left-align by default (mobile) */
+  padding: 20px 16px;  /* Mobile padding */
+}
+
+@media (min-width: 961px) {
+  .container {
+    margin: 0 auto;  /* Center only on desktop */
+    padding: 32px 24px;  /* Larger padding on desktop */
+  }
+}
+```
+
+### Breakpoints
+
+| Breakpoint | Width | Margin Behavior | Padding | Use Case |
+|-----------|-------|-----------------|---------|----------|
+| **Mobile** | 320px-960px | `margin: 0` (left-aligned) | `16px` | Default, optimized for small screens, native app feel |
+| **Desktop** | 961px+ | `margin: 0 auto` (centered) | `24px` | Large screens, centered content for readability |
+
+**Why 961px?** The `.main-content` max-width is 960px. On viewports ≥961px, centering makes sense. Below that, left-alignment maximizes screen real estate.
+
+### Viewport Configuration
+
+All templates must include the enhanced viewport meta tag for proper mobile rendering:
+
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+```
+
+**Key Attributes**:
+- `width=device-width`: Match device width (not zoomed out)
+- `initial-scale=1.0`: No initial zoom
+- `viewport-fit=cover`: **Important for notched devices** (iPhone X and newer) - ensures content respects safe areas
+
+### Safe Area Insets (Notched Devices)
+
+The body element includes safe-area-inset padding to prevent content from being obscured by iPhone notches, Dynamic Island, or rounded corners:
+
+```css
+body {
+  padding: env(safe-area-inset-top)
+           env(safe-area-inset-right)
+           env(safe-area-inset-bottom)
+           env(safe-area-inset-left);
+}
+```
+
+**Effect**: Content automatically adapts to:
+- iPhone 14 Pro/Pro Max (Dynamic Island)
+- iPhone X/XS/11/12/13 (notch)
+- iPad Pro (rounded corners)
+- Future devices with non-rectangular screens
+
+### Touch Optimization
+
+All interactive elements include touch-optimized CSS for better mobile UX:
+
+```css
+button, .btn, a, input, textarea {
+  /* Reduce 300ms tap delay on mobile */
+  touch-action: manipulation;
+
+  /* Remove tap highlight flash on iOS */
+  -webkit-tap-highlight-color: transparent;
+}
+```
+
+**Benefits**:
+- Faster perceived responsiveness (no 300ms delay)
+- Cleaner visual feedback (no blue flash on iOS Safari)
+- Prevents accidental double-taps
+
+### Text Size Adjustment
+
+Prevent iOS Safari from auto-zooming text on orientation change:
+
+```css
+body {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+```
+
+**Without this**: Rotating iPhone from portrait to landscape can trigger unexpected text zoom, breaking layout.
+
+### Smooth Scrolling (iOS)
+
+Scrollable containers use momentum scrolling for native app feel:
+
+```css
+.message-container, .scrollable {
+  -webkit-overflow-scrolling: touch;
+}
+```
+
+**Effect**: Inertial scrolling on iOS (flick and it keeps scrolling, like native apps).
 
 ### Responsive Layout Example
 
@@ -508,14 +622,51 @@ The design system is mobile-first. Breakpoints are defined at:
 }
 ```
 
-### Navigation Responsiveness
+### Test Breakpoints
 
-The header adapts to mobile screens. Test the following breakpoints:
-- **320px**: iPhone SE, older phones
-- **375px**: iPhone 12/13
-- **428px**: iPhone 14 Pro
-- **768px**: iPad
-- **1024px**: iPad Pro, desktop
+Test all pages at these critical viewport widths:
+
+| Device | Width | Orientation | Priority |
+|--------|-------|-------------|----------|
+| **iPhone SE** | 320px | Portrait | **Critical** (minimum supported width) |
+| **iPhone 12/13** | 375px | Portrait | **Critical** (most common) |
+| **iPhone 14 Pro** | 393px | Portrait | **High** (Dynamic Island) |
+| **iPhone 14 Pro Max** | 428px | Portrait | **High** (large phone) |
+| **iPad Mini** | 768px | Portrait | **Medium** (tablet transition) |
+| **iPad Pro** | 1024px | Landscape | **Medium** (desktop-like) |
+| **Desktop** | 1280px+ | N/A | **Medium** (desktop) |
+
+### Mobile Testing Checklist
+
+Before deploying any UI changes:
+
+- [ ] Test on real iPhone Safari (iOS 15, 16, 17)
+- [ ] Test on real Android Chrome (latest)
+- [ ] Content left-aligns on mobile (no centering)
+- [ ] Content centers on desktop (>961px)
+- [ ] No horizontal scroll at 320px width
+- [ ] Touch targets ≥44px × 44px (iOS HIG standard)
+- [ ] Form inputs don't trigger zoom on focus (font-size ≥16px)
+- [ ] Safe area insets respected on notched devices
+- [ ] Smooth scrolling works in message containers
+
+### Common Mobile Pitfalls
+
+❌ **Don't**:
+- Use `margin: 0 auto` without desktop media query
+- Use `max-width` without considering mobile alignment
+- Set `user-scalable=no` (WCAG violation)
+- Use font sizes <16px on inputs (triggers zoom on iOS)
+- Forget `viewport-fit=cover` for notched devices
+- Use `:hover` states without `:active` (no hover on touch)
+
+✅ **Do**:
+- Start with `margin: 0` for mobile
+- Add `margin: 0 auto` only at desktop breakpoint (>961px)
+- Allow user zoom for accessibility
+- Use ≥16px font size on form inputs
+- Test on real devices, not just Chrome DevTools
+- Use `touch-action: manipulation` on all interactive elements
 
 ---
 
