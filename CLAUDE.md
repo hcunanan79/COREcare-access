@@ -74,3 +74,42 @@ All AI models should leverage this MCP server when working on deployment-related
 ```
 
 All AI models should leverage this MCP server when working with GitHub issues, pull requests, project management, and code search tasks. This enables automated issue creation, PR reviews, and project tracking directly from AI agents.
+
+## How MCP Servers Work
+
+MCP (Model Context Protocol) servers are **automatically discovered and invoked by Claude Code** when an AI model needs access to their capabilities. You don't need to manually call MCP tools—instead:
+
+1. **Claude Code discovers available MCP tools** at startup from configured servers
+2. **When an AI model asks for information** that a tool can provide (e.g., "check deployment status"), Claude Code automatically invokes the appropriate tool
+3. **Results are returned transparently** to the AI model without requiring explicit tool calls
+
+### MCP Tool Discovery
+- Tools are discovered from servers listed in `claude mcp list`
+- Available tools depend on the MCP server's implementation
+- Tools are invoked transparently when the AI model's request matches what they provide
+
+### Render MCP Server Available Tools
+Key tools available from Render MCP include:
+- `list_deploys` - Retrieve deployment history and status
+- `get_deploy` - Get details for a specific deployment
+- `list_services` - View all services
+- `get_metrics` - Retrieve CPU, memory, and HTTP metrics
+- `list_logs` - Access logs with filters by time, level, type
+- `list_postgres_instances` - View all databases
+
+### GitHub MCP Server Available Tools
+Key tools available from GitHub MCP include:
+- `list_issues` - Search and filter issues in the repository
+- `create_issue` - Automatically create issues with title, body, labels
+- `get_pull_request` - Retrieve PR details
+- `list_pull_requests` - Search PRs by status, author, reviewer
+- `create_pull_request` - Programmatically create PRs
+
+### How to Use MCP Tools
+Simply request what you need in natural language:
+- "Check the deployment status of the latest commit"
+- "Create an issue for the bug we discussed"
+- "List all open PRs waiting for review"
+- "Get the CPU metrics for the last hour"
+
+Claude Code will automatically locate and invoke the appropriate MCP tool to fulfill the request.
