@@ -1,0 +1,13 @@
+{
+  "name": "corecare-access",
+  "version": "1.0.0",
+  "description": "COREcare Access - Homecare Management Platform",
+  "scripts": {
+    "lint:css": "stylelint 'static/**/*.css'",
+    "lint:css:fix": "stylelint 'static/**/*.css' --fix"
+  },
+  "devDependencies": {
+    "stylelint": "^15.10.0",
+    "stylelint-config-recommended": "^13.0.0"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "extends": "stylelint-config-recommended",
+  "rules": {
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": ["import"]
+      }
+    ],
+    "color-hex-case": "lower",
+    "color-hex-length": "short",
+    "declaration-block-trailing-semicolon": "always",
+    "indentation": 2,
+    "max-line-length": 120,
+    "no-duplicate-selectors": true,
+    "property-no-vendor-prefix": true,
+    "selector-list-comma-newline-after": "always",
+    "unit-disallowed-list": ["pt"],
+    "value-no-vendor-prefix": true
+  }
+}

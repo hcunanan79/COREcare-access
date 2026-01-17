@@ -81,11 +81,25 @@ main (production)
 - Templates: Use template inheritance with `base.html`
 - URLs: Use descriptive, lowercase names with hyphens
 
-### Templates
+### Templates & Design System
 
 - Extend from `base.html` for consistent styling
 - Use Django template tags properly (`{% %}` for logic, `{{ }}` for output)
 - Keep logic minimal in templates
+- **Always follow the [COREcare Design System](docs/DESIGN_SYSTEM.md)** for all user-facing pages
+  - Use CSS classes from `portal.css` or `admin.css`, never inline `style=""`
+  - Use semantic HTML (`<h1>`, `<h2>`, `<label>`, `<button>`)
+  - Leverage CSS variables: `var(--primary)`, `var(--navy)`, `var(--text-muted)`
+  - Test responsive design at 320px, 768px, and 1024px breakpoints
+  - Verify WCAG AA color contrast ratios (4.5:1 for text)
+
+**Design System Reference**: See [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) for:
+- Color palette and CSS variables
+- Typography guidelines (Playfair Display + Inter)
+- Spacing and layout patterns
+- Component examples (buttons, forms, cards, messages)
+- Mobile responsiveness requirements
+- Accessibility standards
 
 ## Project Structure
 
