@@ -26,4 +26,16 @@ from django.conf.urls.static import static
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+else:
+    # Production media serving (for Render persistent disk)
+    # In a proper production setup (AWS S3), this wouldn't be needed.
+    # But for Render Disk, we must serve the files via Django.
+    from django.urls import re_path
+    from django.views.static import serve
+    
+    urlpatterns += [
+        re_path(r'^media/(?P<path>.*)$', serve, {
+            'document_root': settings.MEDIA_ROOT,
+        }),
+    ]
 
