@@ -4,3 +4,9 @@
 {% block extrahead %}
 <link rel="icon" href="{% static 'images/favicon.ico' %}">
 {% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<!-- COREcare Unified Admin Design System -->
+<link rel="stylesheet" href="{% static 'css/admin.css' %}">
+{% endblock %}
