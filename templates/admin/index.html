@@ -1,0 +1,100 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block content %}
+<div id="content-main">
+
+  <!-- Dashboard Tiles -->
+  <div class="tile-dashboard">
+
+    <!-- Tile 1: Clients (Emerald) -->
+    <a href="{% url 'admin:clients_client_changelist' %}" class="tile tile-emerald">
+      <i class="bi bi-person-badge tile-icon"></i>
+      <div class="tile-content">
+        <h3 class="tile-label">Clients</h3>
+        <div class="tile-count">{{ clients_count }}</div>
+      </div>
+    </a>
+
+    <!-- Tile 2: Shifts (Teal) -->
+    <a href="{% url 'admin:shifts_shift_changelist' %}" class="tile tile-teal">
+      <i class="bi bi-calendar-event tile-icon"></i>
+      <div class="tile-content">
+        <h3 class="tile-label">Shifts</h3>
+        <div class="tile-count">{{ shifts_count }}</div>
+      </div>
+    </a>
+
+    <!-- Tile 3: Visits (Purple) -->
+    <a href="{% url 'admin:caregiver_portal_visit_changelist' %}" class="tile tile-purple">
+      <i class="bi bi-house-door tile-icon"></i>
+      <div class="tile-content">
+        <h3 class="tile-label">Visits</h3>
+        <div class="tile-count">{{ visits_count }}</div>
+      </div>
+    </a>
+
+    <!-- Tile 4: Time Entries (Purple) -->
+    <a href="{% url 'admin:timeclock_timeentry_changelist' %}" class="tile tile-purple">
+      <i class="bi bi-clock tile-icon"></i>
+      <div class="tile-content">
+        <h3 class="tile-label">Time Entries</h3>
+        <div class="tile-count">{{ timeentries_count }}</div>
+      </div>
+    </a>
+
+    <!-- Tile 5: Credentials (Teal) -->
+    <a href="{% url 'admin:credentials_employeecredential_changelist' %}" class="tile tile-teal">
+      <i class="bi bi-file-earmark-text tile-icon"></i>
+      <div class="tile-content">
+        <h3 class="tile-label">Credentials</h3>
+        <div class="tile-count">{{ credentials_count }}</div>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- Fallback: Default Django Admin App List (Below Tiles) -->
+  {% if app_list %}
+    <div style="margin-top: 48px;">
+      <h2 style="font-family: 'Playfair Display', serif; color: var(--navy); margin-bottom: 20px;">All Sections</h2>
+      {% for app in app_list %}
+        <div class="app-{{ app.app_label }} module">
+          <table>
+            <caption>
+              <a href="{{ app.app_url }}" class="section" title="{% blocktranslate with name=app.name %}Models in the {{ name }} application{% endblocktranslate %}">{{ app.name }}</a>
+            </caption>
+            {% for model in app.models %}
+              <tr class="model-{{ model.object_name|lower }}">
+                {% if model.admin_url %}
+                  <th scope="row"><a href="{{ model.admin_url }}">{{ model.name }}</a></th>
+                {% else %}
+                  <th scope="row">{{ model.name }}</th>
+                {% endif %}
+
+                {% if model.add_url %}
+                  <td><a href="{{ model.add_url }}" class="addlink">{% translate 'Add' %}</a></td>
+                {% else %}
+                  <td>&nbsp;</td>
+                {% endif %}
+
+                {% if model.admin_url %}
+                  {% if model.view_only %}
+                    <td><a href="{{ model.admin_url }}" class="viewlink">{% translate 'View' %}</a></td>
+                  {% else %}
+                    <td><a href="{{ model.admin_url }}" class="changelink">{% translate 'Change' %}</a></td>
+                  {% endif %}
+                {% else %}
+                  <td>&nbsp;</td>
+                {% endif %}
+              </tr>
+            {% endfor %}
+          </table>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>{% translate "You don't have permission to view or edit anything." %}</p>
+  {% endif %}
+</div>
+{% endblock %}
