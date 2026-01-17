@@ -183,9 +183,20 @@ For production deployment, set the following environment variables:
 
 The application is configured for deployment on Render with auto-deploy from the `main` branch.
 
+### Persistent Storage
+
+This application **REQUIRES** a Persistent Disk on Render to prevent data loss for uploaded files (Avatars, Calendar attachments, Credentials).
+
+- **Mount Path:** `/var/data`
+- **Size:** 10GB recommended
+- **Usage:**
+  - Media files are stored in `/var/data/media/`
+  - Render environment variable `RENDER=true` automatically configures Django to use this path.
+
 ### Build Command
 ```bash
-pip install -r requirements.txt && python manage.py collectstatic --noinput
+# Recommended: Use the provided build script (which includes migrations)
+./build.sh
 ```
 
 ### Start Command
@@ -195,7 +206,8 @@ gunicorn elitecare.wsgi:application
 
 ### Running Migrations
 
-After deployment, run migrations via SSH:
+Migrations are handled automatically if using `./build.sh`.
+If using the default build command, you must run migrations manually via SSH after deployment:
 ```bash
 ssh srv-d5iu087pm1nc73fhf8k0@ssh.virginia.render.com "python manage.py migrate"
 ```
